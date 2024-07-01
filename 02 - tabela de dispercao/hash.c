@@ -45,7 +45,7 @@ void inserir_no_inicio(No *lista, No *novo)
 	}
 }
 
-int *remover_registro(No *lista, int registro)
+int remover_registro(No *lista, int registro)
 {
 	No *p = lista;
 	No *no_removido = NULL;
