@@ -1,495 +1,287 @@
-#include"hash.h"
+#include "hash.h"
 
-void inicializar_tabela(No tabela[TAM])
+void popular_hash(No tabela[TAM])
 {
 	int i;
-	
-	for(i = 0; i<TAM; i++)
+	for (i = 0; i < TAM; i++)
 	{
-		tabela[i].proximo = NULL;
+		tabela[i].prox = NULL;
 	}
 }
 
-int valor_caractere(char c)
+int valor_sequencia(int registro)
 {
-	int r;
-	
-	if(c == 'A')
-		r = 0;
-	else if(c == 'B')
-		r = 1;
-	else if(c == 'C')
-		r = 2;
-	else if(c == 'D')
-		r = 3;
-	else if(c == 'E')
-		r = 4;
-	else if(c == 'F')
-		r = 5;
-	else if(c == 'G')
-		r = 6;
-	else if(c == 'H')
-		r = 7;
-	else if(c == 'I')
-		r = 8;
-	else if(c == 'J')
-		r = 9;
-	else if(c == 'K')
-		r = 10;
-	else if(c == 'L')
-		r = 11;
-	else if(c == 'M')
-		r = 12;
-	else if(c == 'N')
-		r = 13;
-	else if(c == 'O')
-		r = 14;
-	else if(c == 'P')
-		r = 15;
-	else if(c == 'Q')
-		r = 16;
-	else if(c == 'R')
-		r = 17;
-	else if(c == 'S')
-		r = 18;
-	else if(c == 'T')
-		r = 19;
-	else if(c == 'U')
-		r = 20;
-	else if(c == 'V')
-		r = 21;
-	else if(c == 'W')
-		r = 22;
-	else if(c == 'X')
-		r = 23;
-	else if(c == 'Y')
-		r = 24;
-	else if(c == 'Z')
-		r = 25;
-	
+	int valor;
 
-	return r;
+	valor = registro % 100 + registro / 100;
+	;
+	return valor;
 }
 
-int funcao_hash(char placa[])
+int funcao_hash(int registro)
 {
-	int val_char1, val_char2, val_char3, chave = 0;
-	
-	val_char1 = valor_caractere(placa[0]);
-	val_char2 = valor_caractere(placa[1]);
-	val_char3 = valor_caractere(placa[2]);
-	chave = (val_char1*26*26) + (val_char2*26) + val_char3;
-	
+	int chave;
+
+	chave = valor_sequencia(registro) % 18181817;
+
 	return chave;
 }
 
 void insere_tabela(No lista[], No *novo)
 {
 	int chave;
-	
-	chave = funcao_hash(novo->veiculo.placa);
-	
-	inserir_ordenado(&lista[chave],novo);
+
+	chave = funcao_hash(novo->cin.registro);
+
+	inserir_ordenado(&lista[chave], novo);
 }
 
-No* criar_no(Veiculo v)
+void inserir_no_inicio(No *lista, No *novo)
+{
+	if (novo)
+	{
+		novo->prox = lista->prox;
+		lista->prox = novo;
+	}
+}
+
+int *remover_registro(No *lista, int registro)
+{
+	No *p = lista;
+	No *no_removido = NULL;
+	int reg_removido = -1;
+
+	if (lista->prox)
+	{
+		if ((lista)->cin.registro == registro)
+		{
+			no_removido = lista;
+			lista = lista->prox;
+			free(no_removido);
+		}
+		else
+		{
+			while (p->prox != NULL && p->prox->cin.registro != registro)
+			{
+				p = p->prox;
+			}
+
+			if (p->prox != NULL)
+			{
+				no_removido = p;
+				p = p->prox;
+				free(no_removido);
+			}
+		}
+	}
+	return reg_removido;
+}
+
+No *criar_no(CIN cin)
 {
 	No *novo = malloc(sizeof(No));
-	
-	novo->veiculo = v;
-	novo->proximo = NULL;
-	
-	if(!novo)
+
+	novo->cin = cin;
+	novo->prox = NULL;
+
+	if (!novo)
 	{
-		printf("Falha ao alocar um novo nó.\n");
+		printf("Falha ao alocar memória.\n");
 		return NULL;
 	}
 	return novo;
 }
 
-void inserir_no_inicio(No *lista, No *novo)
+void inserir_lista_ordenada(No *lista, No *novo)
 {
+	No *aux;
 
-	if(novo)
+	if (novo)
 	{
-		novo->proximo = lista->proximo;
-		lista->proximo = novo;
-	}
-}
 
-
-No* remover_veiculo(No *lista, char placa[])
-{
-	No *aux,*remover = NULL;
-	
-	if(lista->proximo)
-	{
-		if(strcmp(lista->proximo->veiculo.placa,placa) == 0)
+		if (lista->prox == NULL)
 		{
-			remover = lista->proximo;
-			lista->proximo = remover->proximo;
+			novo->prox = NULL;
+			lista->prox = novo;
+		}
+		else if (novo->cin.registro < lista->prox->cin.registro)
+		{
+			novo->prox = lista->prox;
+			lista->prox = novo;
 		}
 		else
 		{
-			aux = lista->proximo;
-			while(aux->proximo && strcmp(aux->proximo->veiculo.placa,placa) != 0)
-				aux = aux->proximo;
-			if(aux->proximo)
+			aux = lista->prox;
+			while (aux->prox && novo->cin.registro >= aux->prox->cin.registro)
+				aux = aux->prox;
+
+			if (novo->cin.registro != aux->cin.registro)
 			{
-				remover = aux->proximo;
-				aux->proximo = remover->proximo;
+				novo->prox = aux->prox;
+				aux->prox = novo;
 			}
 		}
 	}
-	
-	
-	return remover;
 }
 
-int comparaCategoria(char categoriaAnt[])
+No *busca_registro(No lista_registro[], int registro)
 {
-	int id;
-	/*IDs
-	0 = Mantem o anterior;
-	1 = Comercial
-	2 = Especiais
-	3 = Oficial e Representação
-	4 = Diplomático/Consular
-	*/
-	
-	id = 0;
-	
-	if(strcmp(categoriaAnt, "Aluguel")==0 || strcmp(categoriaAnt, "Aprendizagem")==0)
-	{
-		return id = 1;
-	}
-	else if(strcmp(categoriaAnt, "Experiência/Fabricante")==0)
-	{
-		return id = 2;
-	}
-	else if(strcmp(categoriaAnt, "Oficial")==0 || strcmp(categoriaAnt, "Representação")==0)
-	{
-		return id = 3;
-	}
-	else if(strcmp(categoriaAnt, "Missão Diplomática")==0 || strcmp(categoriaAnt, "Corpo Consular")==0 || strcmp(categoriaAnt, "Corpo Diplomático")==0)
-	{
-		return id = 4;
-	}
-	else if(strcmp(categoriaAnt, "Organismo Consular/Internacional")==0 || strcmp(categoriaAnt, "Acordo Cooperação Internacional")==0)
-	{
-		return id = 4;
-	}
-	else
-		return id;
-}
-
-
-/*
-      Procedimento para inserir ordenado
-*/
-void inserir_ordenado(No *lista, No *novo)
-{
-    No *aux;
-
-    if(novo)
-    {
-        
-        if(lista->proximo == NULL)
-        { /* a lista está vazia?*/
-            novo->proximo = NULL;
-            lista->proximo = novo;
-        }
-        else if(strcmp(novo->veiculo.placa,lista->proximo->veiculo.placa)<0)
-        { /* é o menor?*/
-            novo->proximo = lista->proximo;
-            lista->proximo = novo;
-        }
-        else
-        { /* inserção no meio ou no final da lista*/
-            aux = lista->proximo;
-            while(aux->proximo && strcmp(novo->veiculo.placa,aux->proximo->veiculo.placa) >= 0)
-                aux = aux->proximo;
-            if(strcmp(novo->veiculo.placa,aux->veiculo.placa)!=0)
-            {
-		    novo->proximo = aux->proximo;
-		    aux->proximo = novo;
-            }
-        }
-    }
-}
-
-No *buscarPlacaAntiga(No *listaAntigoPadrao, char placa[])
-{
-	No *no = NULL;
-
-	no = listaAntigoPadrao->proximo;
-	while(no)
-	{
-		if(strcmp(no->veiculo.placa,placa)==0)
-		{
-			return no;
-		}
-		
-		no = no->proximo;
-	}
-	
-	return no;
-}
-
-No *buscarPlacaNova(No *listaNovoPadrao, char placa[])
-{
-	No *no = NULL;
-
-	no = listaNovoPadrao->proximo;
-	while(no)
-	{
-		if(strcmp(no->veiculo.placa,placa)==0)
-		{
-			return no;
-		}
-		
-		no = no->proximo;
-	}
-	
-	return no;
-}
-
-No* buscaPlaca(No listaAntigoPadrao[], No listaNovoPadrao[], const char *placa)
-{
-	No *no = NULL;
-	char placaS[8];
+	No *p, *no = NULL;
+	int registroS;
 	int chave;
-	
-	strcpy(placaS, placa);
-	chave = funcao_hash(placaS);
-	if(chave < 0 || chave>=TAM)
+
+	registroS = registro;
+	chave = funcao_hash(registroS);
+	if (chave < 0 || chave >= TAM)
 		return NULL;
-	
-	if(placaS[4]>='A' && placaS[4]<='Z')
+
+	*p = lista_registro[chave];
+	while (p != NULL && p->cin.registro != NULL)
 	{
-		
-		no = buscarPlacaNova(&listaNovoPadrao[chave],placaS);
+		p = p->prox;
 	}
-	else
+	if (p)
 	{
-		no = buscarPlacaAntiga(&listaAntigoPadrao[chave],placaS);
-		if(no==NULL)
-		{
-			placaS[4] = placaS[4] + 17;
-			chave = funcao_hash(placaS);
-			if(chave < 0 || chave>=TAM)
-				return NULL;
-			
-			no = buscarPlacaNova(&listaNovoPadrao[chave],placaS);
-			
-		}
+		no = p;
 	}
-	
-	
+
 	return no;
-}
-
-
-No* alterarPlaca(No listaAntigoPadrao[], No listaNovoPadrao[], const char *placa)
-{
-	No *alterar, *novo = NULL;
-	Veiculo v;
-	int retorno, chave;
-	char placaS[8];
-	strcpy(placaS,placa);
-	
-	chave = funcao_hash(placaS);
-	if(chave < 0 || chave>=TAM)
-		return NULL;
-		
-	alterar = remover_veiculo(&listaAntigoPadrao[chave],placaS);
-	if(alterar)
-	{
-		strcpy(v.placa,alterar->veiculo.placa);
-		strcpy(v.renavam,alterar->veiculo.renavam);
-		strcpy(v.marca,alterar->veiculo.marca);
-		strcpy(v.modelo,alterar->veiculo.modelo);
-		v.ano = alterar->veiculo.ano;
-		strcpy(v.cor,alterar->veiculo.cor);
-		retorno = comparaCategoria(alterar->veiculo.categoria);
-		if(retorno>0)
-		{
-			if(retorno==1)
-			{
-				strcpy(v.categoria,"Comercial");
-			}
-			else if(retorno==2)
-			{
-				strcpy(v.categoria,"Especiais");
-			}
-			else if(retorno==3)
-			{
-				strcpy(v.categoria,"Oficial e Representação");
-			}
-			else if(retorno==4)
-			{
-				strcpy(v.categoria,"Diplomático/Consular");
-			}
-		}
-		else
-		{
-			strcpy(v.categoria,alterar->veiculo.categoria);
-		}
-		strcpy(v.estado,alterar->veiculo.estado);
-		strcpy(v.cidade,alterar->veiculo.cidade);
-		
-		free(alterar);
-		
-		v.placa[4] = v.placa[4] + 17;
-		
-		novo = criar_no(v);
-		if(novo)
-		{
-			chave = funcao_hash(v.placa);
-			inserir_ordenado(&listaNovoPadrao[chave],novo);
-			return novo;
-		}
-		else
-			printf("Falha ao tentar alocar memória para a placa: %s\n",v.placa);
-		return NULL;
-	}
-	else
-		return NULL;
 }
 
 void relatorio_intervaloAnos(No listaAntigoPadrao[], No listaNovoPadrao[], int anoInicial, int anoFinal)
 {
 	No *no;
-	int i;
-	
-	for(i=0;i<TAM;i++)
+	int i, j;
+
+	for (i = 0; i < TAM; i++)
 	{
-		no = listaAntigoPadrao[i].proximo;
-		while(no)
+		no = listaAntigoPadrao[i].prox;
+		while (no)
 		{
-			if(no->veiculo.ano >= anoInicial && no->veiculo.ano <= anoFinal)
-			{	
-				printf("%s;%s;%s;%s;%d;%s;%s;%s;%s\n",
-				no->veiculo.placa,
-				no->veiculo.renavam,
-				no->veiculo.marca,
-				no->veiculo.modelo,
-				no->veiculo.ano,
-				no->veiculo.cor,
-				no->veiculo.categoria,
-				no->veiculo.estado,
-				no->veiculo.cidade);
+			j = no->cin.registros_emetidos - 1;
+			if (no->cin.data[2] >= anoInicial && no->cin.data[2] <= anoFinal)
+			{
+				printf("%s;%s;%d;%d;%d;%s;\n",
+					   no->cin.nome,
+					   no->cin.naturalidade,
+					   no->cin.data[0],
+					   no->cin.data[1],
+					   no->cin.data[2],
+					   no->cin.registro);
 			}
-			
-			no = no->proximo;
+			while (j >= 0)
+			{
+				printf("Estados Emitidos: %s", no->cin.estado[j]);
+			}
+
+			no = no->prox;
 		}
 	}
-	
-	for(i=0;i<TAM;i++)
+
+	for (i = 0; i < TAM; i++)
 	{
-		no = listaNovoPadrao[i].proximo;
-		while(no)
+		no = listaNovoPadrao[i].prox;
+		while (no)
 		{
-			if(no->veiculo.ano >= anoInicial && no->veiculo.ano <= anoFinal)
-			{	
-				printf("%s;%s;%s;%s;%d;%s;%s;%s;%s\n",
-				no->veiculo.placa,
-				no->veiculo.renavam,
-				no->veiculo.marca,
-				no->veiculo.modelo,
-				no->veiculo.ano,
-				no->veiculo.cor,
-				no->veiculo.categoria,
-				no->veiculo.estado,
-				no->veiculo.cidade);
+			j = no->cin.registros_emetidos - 1;
+			if (no->cin.data[2] >= anoInicial && no->cin.data[2] <= anoFinal)
+			{
+				printf("%s;%s;%d;%d;%d;%s;%d;\n",
+					   no->cin.nome,
+					   no->cin.naturalidade,
+					   no->cin.data[0],
+					   no->cin.data[1],
+					   no->cin.data[2],
+					   no->cin.registro,
+					   no->cin.registros_emetidos);
 			}
-			
-			no = no->proximo;
+
+			no = no->prox;
 		}
 	}
 }
 
-void relatorio_porEstado(No listaAntigoPadrao[], No listaNovoPadrao[], char estado[3])
+void relatorio_porEstado(No listaAntigoPadrao[], No listaNovoPadrao[])
 {
 	No *no;
-	char finalP = '0';
-	int i=0, j;
-	
-	while(finalP<='9')
+	int i, j, estado = 0, estadosEmitidos;
+
+	while (estado <= 25)
 	{
-		for(j=0;j<TAM;j++)
+		for (i = 0; i < TAM; i++)
 		{
-			no = listaAntigoPadrao[j].proximo;
-			while(no)
+			no = listaAntigoPadrao[i].prox;
+			while (no)
 			{
-				if(strcmp(no->veiculo.estado,estado)==0 && no->veiculo.placa[6] == finalP)
-				{	
-					printf("%s;%s;%s;%s;%d;%s;%s;%s;%s\n",
-					no->veiculo.placa,
-					no->veiculo.renavam,
-					no->veiculo.marca,
-					no->veiculo.modelo,
-					no->veiculo.ano,
-					no->veiculo.cor,
-					no->veiculo.categoria,
-					no->veiculo.estado,
-					no->veiculo.cidade);
+				j = 0;
+				estadosEmitidos = no->cin.registros_emetidos - 1;
+				while (j < estadosEmitidos)
+				{
+					if (no->cin.estado[j] == estado)
+					{
+						printf("%s;%s;%d;%d;%d;%s;\n",
+							   no->cin.nome,
+							   no->cin.naturalidade,
+							   no->cin.data[0],
+							   no->cin.data[1],
+							   no->cin.data[2],
+							   no->cin.registro);
+					}
 				}
-				
-				no = no->proximo;
+				j++;
+				no = no->prox;
 			}
 		}
-		
-		for(j=0;j<TAM;j++)
+		for (i = 0; i < TAM; i++)
 		{
-			no = listaNovoPadrao[j].proximo;
-			while(no)
+			no = listaNovoPadrao[i].prox;
+			while (no)
 			{
-				if(strcmp(no->veiculo.estado,estado)==0 && no->veiculo.placa[6] == finalP)
-				{	
-					printf("%s;%s;%s;%s;%d;%s;%s;%s;%s\n",
-					no->veiculo.placa,
-					no->veiculo.renavam,
-					no->veiculo.marca,
-					no->veiculo.modelo,
-					no->veiculo.ano,
-					no->veiculo.cor,
-					no->veiculo.categoria,
-					no->veiculo.estado,
-					no->veiculo.cidade);
-				}
-				
-				no = no->proximo;
+				/* Vendo como sera feito ainda
+				j = 0;
+				estadosEmitidos = no->cin.registros_emetidos - 1;
+				if (no->cin.estado[j] == estado)
+				{
+					printf("%s;%s;%d;%d;%d;%s;\n",
+						   no->cin.nome,
+						   no->cin.naturalidade,
+						   no->cin.data[0],
+						   no->cin.data[1],
+						   no->cin.data[2],
+						   no->cin.registro);
+				}*/
+				no = no->prox;
 			}
 		}
-		
-		i++;
-		finalP = '0' + i;
-	}	
-	
+		estado++;
+	}
 }
 
-
-void imprimir_veiculos(No *lista)
+void imprimir_registros(No *lista)
 {
-	No *no = lista->proximo;
-	if(no)
+	No *no = lista->prox;
+	int j;
+	if (no)
 	{
 		printf("----------------\n");
-		while(no!=NULL)
+		while (no != NULL)
 		{
-			printf("%s;%s;%s;%s;%d;%s;%s;%s;%s;\n",
-			no->veiculo.placa,
-			no->veiculo.renavam,
-			no->veiculo.marca,
-			no->veiculo.modelo,
-			no->veiculo.ano,
-			no->veiculo.cor,
-			no->veiculo.categoria,
-			no->veiculo.estado,
-			no->veiculo.cidade);
+			j = no->cin.registros_emetidos - 1;
 
-			no = no->proximo;
+			printf("%s;%s;%d;%d;%d;%s;\n",
+				   no->cin.nome,
+				   no->cin.naturalidade,
+				   no->cin.data[0],
+				   no->cin.data[1],
+				   no->cin.data[2],
+				   no->cin.registro);
+
+			while (j >= 0)
+			{
+				printf("Estados Emitidos: %s", no->cin.estado[j]);
+			}
+
+			no = no->prox;
 		}
 		printf("\n\n");
 	}
@@ -498,36 +290,33 @@ void imprimir_veiculos(No *lista)
 void imprimir_tabela(No tabela[])
 {
 	int i;
-	
-	for(i=0;i<TAM;i++)
+
+	for (i = 0; i < TAM; i++)
 	{
-		imprimir_veiculos(&tabela[i]);
+		imprimir_registros(&tabela[i]);
 	}
-	
 }
 
-
-void libera_lista(No lista)
+void finaliza_lista(No lista)
 {
 	No *aux, *remove;
-	
-	aux = lista.proximo;
-	while(aux)
+
+	aux = lista.prox;
+	while (aux)
 	{
 		remove = aux;
-		aux = aux->proximo;
+		aux = aux->prox;
 		free(remove);
 	}
-	lista.proximo = NULL;
+	lista.prox = NULL;
 }
 
 void deleta_tabela(No tabela[TAM])
 {
 	int i;
-	
-	for(i = 0; i<TAM; i++)
+
+	for (i = 0; i < TAM; i++)
 	{
 		libera_lista(tabela[i]);
 	}
-
 }
