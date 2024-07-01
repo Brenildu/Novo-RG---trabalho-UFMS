@@ -6,9 +6,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TAM 17476
+#define TAM 18181817
 
-typedef struct{
+typedef struct
+{
 	char nome[70];
 	int data[3];
 	char naturalidade[30];
@@ -16,50 +17,49 @@ typedef struct{
 	int registros_emetidos;
 	int estado[27];
 
-}CIN;
+} CIN;
 
-typedef struct no{
-	Veiculo veiculo;
-	struct no *proximo;
-}No;
+typedef struct no
+{
+	CIN cin;
+	struct no *prox;
+} No;
 
-void inicializar_tabela(No tabela[TAM]);
+void popular_hash(No tabela[TAM]);
 
-int valor_caractere(char c);
+int valor_sequencia(int registro);
 
-int funcao_hash(char placa[]);
+int funcao_hash(int registro);
 
 void insere_tabela(No lista[], No *novo);
 
-No* criar_no(Veiculo v);
-
 void inserir_no_inicio(No *lista, No *novo);
 
-No* remover_veiculo(No *lista, char placa[]);
+int remover_registro(No *lista, int registro);
 
-int comparaCategoria(char categoriaAnt[]);
+No *criar_no(CIN cin);
 
 void inserir_ordenado(No *lista, No *novo);
 
-No *buscarPlacaAntiga(No *listaAntigoPadrao, char placa[]);
+No *busca_registroAntigos(No *listaAntigoPadrao, int registro);
 
-No *buscarPlacaNova(No *listaNovoPadrao, char placa[]);
+No *busca_registroNovos(No *listaNovoPadrao, int registro);
 
-No* buscaVeiculo(No listaAntigoPadrao[], No listaNovoPadrao[], char placa[]);
+No *busca_registro(No lista_registro[], int registro);
 
-No* alterarPlaca(No listaAntigoPadrao[], No listaNovoPadrao[], const char *placa);
+No *alterarRegistro(No listaAntigoPadrao[], No listaNovoPadrao[], const char *placa);
 
 void relatorio_intervaloAnos(No listaAntigoPadrao[], No listaNovoPadrao[], int anoInicial, int anoFinal);
 
-void relatorio_porEstado(No listaAntigoPadrao[], No listaNovoPadrao[], char estado[3]);
+void relatorio_porEstado(No listaAntigoPadrao[], No listaNovoPadrao[]);
 
-void imprimir_veiculos(No *lista);
+void imprimir_registros(No *lista);
 
-No* buscaPlaca(No listaAntigoPadrao[], No listaNovoPadrao[], const char *placa);
+No *buscaRegistro(No listaAntigoPadrao[], No listaNovoPadrao[], const int *registro);
 
 void imprimir_tabela(No tabela[]);
 
-void libera_lista(No lista);
+void finaliza_lista(No lista);
 
 void deleta_tabela(No tabela[TAM]);
 
