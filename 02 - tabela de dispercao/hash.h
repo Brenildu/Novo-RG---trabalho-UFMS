@@ -8,14 +8,19 @@
 
 #define TAM 18181817
 
+typedef struct{
+	char cidade[31];
+	char estado[3];
+	int rg;
+}Naturalidade;
+
 typedef struct
 {
 	char nome[70];
 	int data[3];
-	char naturalidade[30];
-	int registro;
+	Naturalidade Naturalidade[26];
+	long registro;
 	int registros_emetidos;
-	int estado[27];
 
 } CIN;
 
