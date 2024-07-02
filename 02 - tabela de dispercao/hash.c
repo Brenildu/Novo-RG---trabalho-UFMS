@@ -1,6 +1,6 @@
 #include "hash.h"
 
-void popular_hash(No tabela[TAM])
+void popular_hash(No tabela[])
 {
 	int i;
 	for (i = 0; i < TAM; i++)
@@ -136,7 +136,7 @@ No *busca_registro(No lista_registro[], int registro)
 		return NULL;
 
 	*p = lista_registro[chave];
-	while (p != NULL && p->cin.registro != NULL)
+	while (p != NULL)
 	{
 		p = p->prox;
 	}
@@ -161,17 +161,19 @@ void relatorio_intervaloAnos(No listaAntigoPadrao[], No listaNovoPadrao[], int a
 			j = no->cin.registros_emetidos - 1;
 			if (no->cin.data[2] >= anoInicial && no->cin.data[2] <= anoFinal)
 			{
-				printf("%s;%s;%d;%d;%d;%s;\n",
-					   no->cin.nome,
-					   no->cin.naturalidade,
-					   no->cin.data[0],
-					   no->cin.data[1],
-					   no->cin.data[2],
-					   no->cin.registro);
+				printf("%s;%s;%s;%d;%d;%d;%d;%ld;\n",
+					no->cin.nome,
+					no->cin.Naturalidade->cidade,
+					no->cin.Naturalidade->estado,
+					no->cin.Naturalidade->rg,
+					no->cin.data[0],
+					no->cin.data[1],
+					no->cin.data[2],
+					no->cin.registro);
 			}
 			while (j >= 0)
 			{
-				printf("Estados Emitidos: %s", no->cin.estado[j]);
+				printf("Estados Emitidos: %s", no->cin.Naturalidade[j]);
 			}
 
 			no = no->prox;
@@ -186,14 +188,15 @@ void relatorio_intervaloAnos(No listaAntigoPadrao[], No listaNovoPadrao[], int a
 			j = no->cin.registros_emetidos - 1;
 			if (no->cin.data[2] >= anoInicial && no->cin.data[2] <= anoFinal)
 			{
-				printf("%s;%s;%d;%d;%d;%s;%d;\n",
-					   no->cin.nome,
-					   no->cin.naturalidade,
-					   no->cin.data[0],
-					   no->cin.data[1],
-					   no->cin.data[2],
-					   no->cin.registro,
-					   no->cin.registros_emetidos);
+				printf("%s;%s;%s;%d;%d;%d;%d;%ld;\n",
+					no->cin.nome,
+					no->cin.Naturalidade->cidade,
+					no->cin.Naturalidade->estado,
+					no->cin.Naturalidade->rg,
+					no->cin.data[0],
+					no->cin.data[1],
+					no->cin.data[2],
+					no->cin.registro);
 			}
 
 			no = no->prox;
@@ -217,15 +220,17 @@ void relatorio_porEstado(No listaAntigoPadrao[], No listaNovoPadrao[])
 				estadosEmitidos = no->cin.registros_emetidos - 1;
 				while (j < estadosEmitidos)
 				{
-					if (no->cin.estado[j] == estado)
+					if (strcmp(no->cin.Naturalidade[j].estado, estado) == 0)
 					{
-						printf("%s;%s;%d;%d;%d;%s;\n",
-							   no->cin.nome,
-							   no->cin.naturalidade,
-							   no->cin.data[0],
-							   no->cin.data[1],
-							   no->cin.data[2],
-							   no->cin.registro);
+						printf("%s;%s;%s;%d;%d;%d;%d;%ld;\n",
+							no->cin.nome,
+							no->cin.Naturalidade->cidade,
+							no->cin.Naturalidade->estado,
+							no->cin.Naturalidade->rg,
+							no->cin.data[0],
+							no->cin.data[1],
+							no->cin.data[2],
+							no->cin.registro);
 					}
 				}
 				j++;
@@ -268,17 +273,19 @@ void imprimir_registros(No *lista)
 		{
 			j = no->cin.registros_emetidos - 1;
 
-			printf("%s;%s;%d;%d;%d;%s;\n",
-				   no->cin.nome,
-				   no->cin.naturalidade,
-				   no->cin.data[0],
-				   no->cin.data[1],
-				   no->cin.data[2],
-				   no->cin.registro);
+			printf("%s;%s;%s;%d;%d;%d;%d;%d;\n",
+					no->cin.nome,
+					no->cin.Naturalidade->cidade,
+					no->cin.Naturalidade->estado,
+					no->cin.Naturalidade->rg,
+					no->cin.data[0],
+					no->cin.data[1],
+					no->cin.data[2],
+					no->cin.registro);
 
 			while (j >= 0)
 			{
-				printf("Estados Emitidos: %s", no->cin.estado[j]);
+				printf("Estados Emitidos: %s", no->cin.Naturalidade[j].estado);
 			}
 
 			no = no->prox;
@@ -311,7 +318,7 @@ void finaliza_lista(No lista)
 	lista.prox = NULL;
 }
 
-void deleta_tabela(No tabela[TAM])
+void deleta_tabela(No tabela[])
 {
 	int i;
 

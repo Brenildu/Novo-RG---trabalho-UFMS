@@ -1,16 +1,15 @@
 #ifndef ARVOREBINARIA_H
 #define ARVOREBINARIA_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
 
-typedef struct
-{
+typedef struct{
 	char cidade[31];
 	char estado[3];
 	int rg;
-} Naturalidade;
+}Naturalidade;
 
 typedef struct
 {
@@ -26,36 +25,30 @@ typedef struct Node
 {
 	CIN cin;
 	struct Node *dir;
-	struct Node *esq;
+    struct Node *esq;
 } Node;
 
-Node *novoNode(CIN cin);
+Node *novo_node(CIN cin);
 
-Node *inserir_cin(Node *node, CIN cin);
+Node* inserir_cin(Node* node, CIN cin);
 
-Node *maiorValorNode(Node *no);
+Node* maior_ValorEsq(Node* no);
 
-Node *removerCin(Node *raiz, long registro);
+Node* remover_cin(Node* raiz, long registro);
 
-Node *buscaRegistro(Node *arvore, long registro);
+Node *busca_registro(Node *binary_tree, long registro);
 
-Node *procurarCin(Node *raizAntigoPadrao, Node *raizNovoPadrao, const long *registro);
+Node* procurar_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, const long *registro);
 
-Node *buscaCIN(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro);
+Node* busca_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro);
 
-void imprimirCin(Node *arvore);
+void imprimir_cins(Node *binary_tree);
 
-void exclui_arvore(Node *arvore);
-
-int quantidade_de_cin(Node *raiz);
-
-Node *alterarRegistro(Node **raizAntigoPadrao, Node **raizNovoPadrao, const long *registro);
+void exclui_arvore(Node *binary_tree);
 
 void relatorio_anos(Node *raiz, int anoInicial, int anoFinal);
 
 void relatorio_intervaloAnos(Node *raizAntigoPadrao, Node *raizNovoPadrao, int anoInicial, int anoFinal);
-
-void relatorio_estado(Node *raiz, char estado[3], char finalP);
 
 void relatorio_porEstado(Node *raizAntigoPadrao, Node *raizNovoPadrao, char estado[3]);
 

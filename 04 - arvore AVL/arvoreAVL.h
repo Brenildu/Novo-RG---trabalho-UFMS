@@ -44,27 +44,27 @@ Node *rotacaoDE(Node *ramo);
 
 Node *balancear(Node *raiz);
 
-Node *novoNode(CIN cin);
+Node *novo_Node(CIN cin);
 
 Node *inserir_CIN(Node *node, CIN cin);
 
-Node *maiorValorNode(Node *no);
+Node *maior_ValorNode(Node *no);
 
-Node *removerCIN(Node *raiz, long registro);
+Node *remover_cin(Node *raiz, long registro);
 
-Node *buscaRegistro(Node *arvore, long registro);
+Node *busca_registro(Node *arvore, long registro);
 
-Node *procurar_CIN(Node *raizAntigoPadrao, Node *raizNovoPadrao, const char *placa);
+Node *procurar_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, const long *registro);
 
-Node *buscaCIN(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro);
+Node *busca_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro);
 
-void imprimirCINs(Node *arvore);
+void imprimir_cins(Node *arvore);
 
 void deleta_arvore(Node *arvore);
 
 int quantidade_de_cin(Node *raiz);
 
-Node *alterarRegistro(Node **raizAntigoPadrao, Node **raizNovoPadrao, const long *registro);
+Node *alterar_registro(Node **raizAntigoPadrao, Node **raizNovoPadrao, const long *registro);
 
 void relatorio_anos(Node *raiz, int anoInicial, int anoFinal);
 

@@ -30,29 +30,29 @@ typedef struct no
 	struct no *prox;
 } No;
 
-void popular_hash(No tabela[TAM]);
+void popular_hash(No tabela[]);
 
-int valor_sequencia(int registro);
+long valor_sequencia(long registro);
 
-int funcao_hash(int registro);
+long funcao_hash(long registro);
 
 void insere_tabela(No lista[], No *novo);
 
 void inserir_no_inicio(No *lista, No *novo);
 
-int remover_registro(No *lista, int registro);
+long remover_registro(No *lista, long registro);
 
 No *criar_no(CIN cin);
 
 void inserir_ordenado(No *lista, No *novo);
 
-No *busca_registroAntigos(No *listaAntigoPadrao, int registro);
+No *busca_registroAntigos(No *listaAntigoPadrao, long registro);
 
-No *busca_registroNovos(No *listaNovoPadrao, int registro);
+No *busca_registroNovos(No *listaNovoPadrao, long registro);
 
-No *busca_registro(No lista_registro[], int registro);
+No *busca_registro(No lista_registro[], long registro);
 
-No *alterarRegistro(No listaAntigoPadrao[], No listaNovoPadrao[], const char *placa);
+No *alterarRegistro(No listaAntigoPadrao[], No listaNovoPadrao[], const long *registro);
 
 void relatorio_intervaloAnos(No listaAntigoPadrao[], No listaNovoPadrao[], int anoInicial, int anoFinal);
 
@@ -60,12 +60,12 @@ void relatorio_porEstado(No listaAntigoPadrao[], No listaNovoPadrao[]);
 
 void imprimir_registros(No *lista);
 
-No *buscaRegistro(No listaAntigoPadrao[], No listaNovoPadrao[], const int *registro);
+No *buscaRegistro(No listaAntigoPadrao[], No listaNovoPadrao[], const long *registro);
 
 void imprimir_tabela(No tabela[]);
 
 void finaliza_lista(No lista);
 
-void deleta_tabela(No tabela[TAM]);
+void deleta_tabela(No tabela[]);
 
 #endif

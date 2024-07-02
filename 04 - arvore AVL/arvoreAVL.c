@@ -80,7 +80,7 @@ Node *balancear(Node *node)
 	return node;
 }
 
-Node *novoNode(CIN cin)
+Node *novo_node(CIN cin)
 {
 	Node *novo = (Node *)malloc(sizeof(Node));
 
@@ -90,7 +90,7 @@ Node *novoNode(CIN cin)
 		novo->esq = NULL;
 		novo->dir = NULL;
 		novo->altura = 1;
-
+ 
 		return novo;
 	}
 
@@ -103,7 +103,7 @@ Node *inserir_cin(Node *node, CIN cin)
 
 	if (node == NULL)
 	{
-		novo = novoNode(cin);
+		novo = novo_node(cin);
 		if (novo)
 			return novo;
 		else
@@ -124,7 +124,7 @@ Node *inserir_cin(Node *node, CIN cin)
 	return node;
 }
 
-Node *remover_cin(Node *node, int registro)
+Node *remover_cin(Node *node, long registro)
 {
 	if (node == NULL)
 	{
@@ -177,7 +177,7 @@ Node *remover_cin(Node *node, int registro)
 	}
 }
 
-Node *buscaRegistro(Node *arvore, char registro[])
+Node *busca_registro(Node *arvore, long registro)
 {
 	if (!arvore)
 	{
@@ -199,7 +199,7 @@ Node *buscaRegistro(Node *arvore, char registro[])
 	return NULL;
 }
 
-Node *procurar_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, const int *registro)
+Node *procurar_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, const long *registro)
 {
 	Node *no = NULL;
 
@@ -219,7 +219,7 @@ Node *procurar_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, const int *regi
 	return no;
 }
 
-Node *alterarRegistro(Node **raizAntigoPadrao, Node **raizNovoPadrao, const long *registro)
+Node *alterar_registro(Node **raizAntigoPadrao, Node **raizNovoPadrao, const long *registro)
 {
 	Node *alterar, *novo = NULL;
 	CIN cin;
@@ -257,15 +257,11 @@ void relatorio_intervaloAnos(Node *raizAntigoPadrao, Node *raizNovoPadrao, int a
 	relatorio_anos(raizNovoPadrao, anoInicial, anoFinal);
 }
 
-void relatorio_estado(Node *raiz, char estado[3], char finalP)
+void relatorio_porEstado(Node *rootAntigoPadrao, Node *rootNovoPadrao)
 {
 }
 
-void relatorio_porEstado(Node *rootAntigoPadrao, Node *rootNovoPadrao, char estado[3])
-{
-}
-
-void imprimir_cin(Node *arvore)
+void imprimir_cins(Node *arvore)
 {
 	if (arvore)
 	{
@@ -291,23 +287,21 @@ void deleta_arvore(Node *arvore)
 		deleta_arvore(arvore->dir);
 		free(arvore);
 	}
-
-	void imprimirCins(Node * arvore)
+}
+	void imprimir_cins(Node *arvore)
 	{
 		if (arvore)
 		{
-			imprimirCins(arvore->esq);
-			printf("%s;%s;%s;%s;%d;%s;%s;%s;%s;\n",
-				   arvore->cin.registro,
-				   arvore->cin.renavam,
-				   arvore->cin.marca,
-				   arvore->cin.modelo,
-				   arvore->cin.ano,
-				   arvore->cin.cor,
-				   arvore->cin.categoria,
-				   arvore->cin.estado,
-				   arvore->cin.cidade);
-			imprimirCins(arvore->dir);
+			imprimir_veiculos(arvore->esq);
+			printf("%s;%s;%s;%d;%d;%d;%d;%d;\n",
+				arvore->cin.nome,
+				arvore->cin.Naturalidade->cidade,
+				arvore->cin.Naturalidade->estado,
+				arvore->cin.Naturalidade->rg,
+				arvore->cin.data[0],
+				arvore->cin.data[1],
+				arvore->cin.data[2],
+				arvore->cin.registro);
+			imprimir_cins(arvore->dir);
 		}
 	}
-}
