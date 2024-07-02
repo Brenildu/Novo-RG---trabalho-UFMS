@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TAM 18181817
+#define TAM (long)18181817
 
 typedef struct{
 	char cidade[31];
