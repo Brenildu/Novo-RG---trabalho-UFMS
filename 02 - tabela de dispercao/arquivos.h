@@ -10,7 +10,6 @@
 
 void leituraERGUF(No listaAntigoPadrao[], No listaNovoPadrao[], char *arquivo);
 
-
 No *inverterLista(No **listaOrdenada);
 
 void gravarERGUF(const char *filename, No *lst);

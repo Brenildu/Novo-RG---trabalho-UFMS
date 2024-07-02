@@ -14,7 +14,6 @@ long valor_sequencia(long registro)
 	long valor;
 
 	valor = registro % 100 + registro / 100;
-	;
 	return valor;
 }
 
@@ -36,27 +35,19 @@ void insere_tabela(No lista[], No *novo)
 	inserir_ordenado(&lista[chave], novo);
 }
 
-void inserir_no_inicio(No *lista, No *novo)
+long remover_cin(No *lista, long registro)
 {
-	if (novo)
-	{
-		novo->prox = lista->prox;
-		lista->prox = novo;
-	}
-}
-
-long remover_registro(No *lista, long registro)
-{
-	No *p = lista;
+	No *p = lista->prox;
 	No *no_removido = NULL;
 	long reg_removido = -1;
 
-	if (lista->prox)
+	if (p)
 	{
-		if ((lista)->cin.registro == registro)
+		if (p->cin.registro == registro)
 		{
 			no_removido = lista;
 			lista = lista->prox;
+			reg_removido = no_removido->cin.registro;
 			free(no_removido);
 		}
 		else
@@ -68,8 +59,9 @@ long remover_registro(No *lista, long registro)
 
 			if (p->prox != NULL)
 			{
-				no_removido = p;
-				p = p->prox;
+				no_removido = p->prox;
+				p->prox = no_removido->prox;
+				reg_removido = no_removido->cin.registro;
 				free(no_removido);
 			}
 		}

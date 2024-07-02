@@ -132,42 +132,65 @@ Node *inserir_cin(Node *node, CIN cin)
 
 Node *remover_cin(Node *node, long registro)
 {
-	if (node == NULL)
-	{
-		return NULL;
-	}
+    if (node == NULL)
+    {
+        return NULL;
+    }
 
-	if (registro < node->cin.registro)
-	{
-		node->esq = remover_cin(node->esq, registro);
-	}
-	else if (registro > node->cin.registro)
-	{
-		node->dir = remover_cin(node->dir, registro);
-	}
-	else
-	{
-		if (node->esq == NULL)
-		{
-			Node *temp = node->dir;
-			free(node);
-			return temp;
-		}
-		else if (node->dir == NULL)
-		{
-			Node *temp = node->esq;
-			free(node);
-			return temp;
-		}
+    if (registro < node->cin.registro)
+    {
+        node->esq = remover_cin(node->esq, registro);
+    }
+    else if (registro > node->cin.registro)
+    {
+        node->dir = remover_cin(node->dir, registro);
+    }
+    else
+    {
+        // Node with only one child or no child
+        if (node->esq == NULL || node->dir == NULL)
+        {
+            Node *temp = node->esq ? node->esq : node->dir;
 
-		Node *temp = node->esq;
-		while (temp->dir != NULL)
-		{
-			temp = temp->dir;
-		}
-		node->cin = temp->cin;
-		node->esq = remover_cin(node->esq, temp->cin.registro);
-	}
+            // No child case
+            if (temp == NULL)
+            {
+                temp = node;
+                node = NULL;
+            }
+            else // One child case
+            {
+                *node = *temp; // Copy the contents of the non-empty child
+            }
+            free(temp);
+        }
+        else
+        {
+            // Node with two children: Get the inorder predecessor (largest in the left subtree)
+            Node *temp = node->esq;
+            while (temp->dir != NULL)
+            {
+                temp = temp->dir;
+            }
+
+            // Copy the inorder predecessor's data to this node
+            node->cin = temp->cin;
+
+            // Delete the inorder predecessor
+            node->esq = remover_cin(node->esq, temp->cin.registro);
+        }
+    }
+
+    // If the tree had only one node then return
+    if (node == NULL)
+    {
+        return node;
+    }
+
+    // Update the height of the current node
+    node->altura = 1 + maior(obter_altura(node->esq), obter_altura(node->dir));
+
+    // Get the balance factor of this node to check
 }
 
 
@@ -182,45 +205,24 @@ Node *busca_registro(Node *arvore, long registro)
 	return busca_registro(arvore->dir, registro);
 }
 
-void imprimir_cins(Node *arvore)
-{
-	if (arvore != NULL)
-	{
-		return buscaRegistro(arvore->esq, registro);
-	}
-	else if (registro > arvore->cin.registro)
-	{
-		return buscaRegistro(arvore->dir, registro);
-	}
-	return NULL;
-}
-
-Node *procurar_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, const long *registro)
+Node *procurar_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro)
 {
 	Node *no = NULL;
 
-	if (0)
+	if (raizNovoPadrao)
 	{
-		no = buscaregistro(raizNovoPadrao, registro);
+		no = busca_registro(raizNovoPadrao, registro);
 	}
 	else
 	{
-		no = buscaregistro(raizAntigoPadrao, registro);
+		no = busca_registro(raizAntigoPadrao, registro);
 		if (no == NULL)
 		{
-			no = buscaregistro(raizNovoPadrao, registro);
+			no = busca_registro(raizNovoPadrao, registro);
 		}
 	}
 
 	return no;
-}
-
-Node *alterar_registro(Node **raizAntigoPadrao, Node **raizNovoPadrao, const long *registro)
-{
-	Node *alterar, *novo = NULL;
-	CIN cin;
-	int retorno;
-	long aux = registro;
 }
 
 void relatorio_anos(Node *raiz, int anoInicial, int anoFinal)
@@ -261,7 +263,7 @@ void imprimir_cins(Node *arvore)
 {
 	if (arvore)
 	{
-		imprimir_veiculos(arvore->esq);
+		imprimir_cins(arvore->esq);
 		printf("%s;%s;%s;%d;%d;%d;%d;%d;\n",
 			   arvore->cin.nome,
 			   arvore->cin.Naturalidade->cidade,
@@ -283,27 +285,4 @@ void deleta_arvore(Node *arvore)
 		deleta_arvore(arvore->dir);
 		free(arvore);
 	}
-}
-
-void imprimir_cins(Node *arvore)
-{
-	relatorio_faixaEtaria(raiz->esq, idadeInicial, idadeFinal, anoAtual, pessoas);
-
-	int idade = calcular_idade(raiz->cin.data[2], anoAtual);
-	if (idade >= idadeInicial && idade <= idadeFinal)
-	{
-		imprimir_veiculos(arvore->esq);
-		printf("%s;%s;%s;%d;%d;%d;%d;%d;\n",
-			arvore->cin.nome,
-			arvore->cin.Naturalidade->cidade,
-			arvore->cin.Naturalidade->estado,
-			arvore->cin.Naturalidade->rg,
-			arvore->cin.data[0],
-			arvore->cin.data[1],
-			arvore->cin.data[2],
-			arvore->cin.registro);
-		imprimir_cins(arvore->dir);
-	}
-
-	relatorio_faixaEtaria(raiz->dir, idadeInicial, idadeFinal, anoAtual, pessoas);
 }
