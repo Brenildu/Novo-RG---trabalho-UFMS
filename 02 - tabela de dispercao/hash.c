@@ -9,18 +9,18 @@ void popular_hash(No tabela[])
 	}
 }
 
-int valor_sequencia(int registro)
+long valor_sequencia(long registro)
 {
-	int valor;
+	long valor;
 
 	valor = registro % 100 + registro / 100;
 	;
 	return valor;
 }
 
-int funcao_hash(int registro)
+long funcao_hash(long registro)
 {
-	int chave;
+	long chave;
 
 	chave = valor_sequencia(registro) % 18181817;
 
@@ -29,7 +29,7 @@ int funcao_hash(int registro)
 
 void insere_tabela(No lista[], No *novo)
 {
-	int chave;
+	long chave;
 
 	chave = funcao_hash(novo->cin.registro);
 
@@ -45,11 +45,11 @@ void inserir_no_inicio(No *lista, No *novo)
 	}
 }
 
-int remover_registro(No *lista, int registro)
+long remover_registro(No *lista, long registro)
 {
 	No *p = lista;
 	No *no_removido = NULL;
-	int reg_removido = -1;
+	long reg_removido = -1;
 
 	if (lista->prox)
 	{
@@ -92,10 +92,9 @@ No *criar_no(CIN cin)
 	return novo;
 }
 
-void inserir_lista_ordenada(No *lista, No *novo)
+void inserir_lista_ordem_alfabetica(No *lista, No *novo)
 {
 	No *aux;
-
 	if (novo)
 	{
 
@@ -104,7 +103,7 @@ void inserir_lista_ordenada(No *lista, No *novo)
 			novo->prox = NULL;
 			lista->prox = novo;
 		}
-		else if (novo->cin.registro < lista->prox->cin.registro)
+		else if (strcmp(novo->cin.nome, lista->prox->cin.nome) < 0)
 		{
 			novo->prox = lista->prox;
 			lista->prox = novo;
@@ -112,13 +111,16 @@ void inserir_lista_ordenada(No *lista, No *novo)
 		else
 		{
 			aux = lista->prox;
-			while (aux->prox && novo->cin.registro >= aux->prox->cin.registro)
+			while (aux->prox && strcmp(novo->cin.nome, lista->prox->cin.nome) >= 0)
 				aux = aux->prox;
 
-			if (novo->cin.registro != aux->cin.registro)
+			if (strcmp(novo->cin.nome, lista->prox->cin.nome) != 0 || novo->cin.registro != lista->prox->cin.registro)
 			{
 				novo->prox = aux->prox;
 				aux->prox = novo;
+			}
+			else{
+				/*Ja cadastrado */
 			}
 		}
 	}
@@ -198,7 +200,6 @@ void relatorio_intervaloAnos(No listaAntigoPadrao[], No listaNovoPadrao[], int a
 					no->cin.data[2],
 					no->cin.registro);
 			}
-
 			no = no->prox;
 		}
 	}

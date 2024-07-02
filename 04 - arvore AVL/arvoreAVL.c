@@ -2,49 +2,47 @@
 
 int maior(int a, int b)
 {
-	if (a > b)
-	{
-		return a;
-	}
-	return b;
+	return (a > b) ? a : b;
+}
+
+int obter_altura(Node *N)
+{
+	if (N == NULL)
+		return 0;
+	return N->altura;
 }
 
 short fatorDeBalanceamento(Node *node)
 {
-	if (node)
-		return (node->dir->altura - node->esq->altura);
-	else
+	if (node == NULL)
 		return 0;
+	return obter_altura(node->dir) - obter_altura(node->esq);
 }
 
 Node *rotacaoSE(Node *node)
 {
-	Node *p, *q;
-
-	p = node->dir;
-	q = p->esq;
+	Node *p = node->dir;
+	Node *q = p->esq;
 
 	p->esq = node;
 	node->dir = q;
 
-	node->altura = maior(node->esq->altura, node->dir->altura) + 1;
-	p->altura = maior(p->esq->altura, p->dir->altura) + 1;
+	node->altura = maior(obter_altura(node->esq), obter_altura(node->dir)) + 1;
+	p->altura = maior(obter_altura(p->esq), obter_altura(p->dir)) + 1;
 
 	return p;
 }
 
 Node *rotacaoSD(Node *node)
 {
-	Node *p, *q;
-
-	p = node->esq;
-	q = p->dir;
+	Node *p = node->esq;
+	Node *q = p->dir;
 
 	p->dir = node;
 	node->esq = q;
 
-	node->altura = maior(node->esq->altura, node->dir->altura) + 1;
-	p->altura = maior(p->esq->altura, p->dir->altura) + 1;
+	node->altura = maior(obter_altura(node->esq), obter_altura(node->dir)) + 1;
+	p->altura = maior(obter_altura(p->esq), obter_altura(p->dir)) + 1;
 
 	return p;
 }
@@ -63,19 +61,22 @@ Node *rotacaoDE(Node *node)
 
 Node *balancear(Node *node)
 {
+	if (node == NULL)
+		return NULL;
+
 	short fb = fatorDeBalanceamento(node);
 
 	if (fb > 1 && fatorDeBalanceamento(node->dir) >= 0)
-		node = rotacaoEsquerda(node);
+		return rotacaoSE(node);
 
-	else if (fb < -1 && fatorDeBalanceamento(node->esq) <= 0)
-		node = rotacaoDireita(node);
+	if (fb < -1 && fatorDeBalanceamento(node->esq) <= 0)
+		return rotacaoSD(node);
 
-	else if (fb < -1 && fatorDeBalanceamento(node->esq) > 0)
-		node = rotacaoEsquerdaDireita(node);
+	if (fb < -1 && fatorDeBalanceamento(node->esq) > 0)
+		return rotacaoDE(node);
 
-	else if (fb > 1 && fatorDeBalanceamento(node->dir) < 0)
-		node = rotacaoDireitaEsquerda(node);
+	if (fb > 1 && fatorDeBalanceamento(node->dir) < 0)
+		return rotacaoDD(node);
 
 	return node;
 }
@@ -99,11 +100,9 @@ Node *novo_node(CIN cin)
 
 Node *inserir_cin(Node *node, CIN cin)
 {
-	Node *novo;
-
 	if (node == NULL)
 	{
-		novo = novo_node(cin);
+		Node *novo = novo_node(cin);
 		if (novo)
 			return novo;
 		else
@@ -112,16 +111,23 @@ Node *inserir_cin(Node *node, CIN cin)
 	}
 	else
 	{
-		if (strcmp(cin.nome, node->cin.nome) < 0)
+		if (cin.registro < node->cin.registro)
+		{
 			node->esq = inserir_cin(node->esq, cin);
-		else if (strcmp(cin.nome, node->cin.nome) > 0)
+		}
+		else if (cin.registro > node->cin.registro)
+		{
 			node->dir = inserir_cin(node->dir, cin);
+		}
+		else
+		{
+			return node;
+		}
 	}
-	node->altura = maior(alturaNode(node->esq), alturaNode(node->dir)) + 1;
 
-	node = balancear(node);
+	node->altura = 1 + maior(obter_altura(node->esq), obter_altura(node->dir));
 
-	return node;
+	return balancear(node);
 }
 
 Node *remover_cin(Node *node, long registro)
@@ -130,65 +136,55 @@ Node *remover_cin(Node *node, long registro)
 	{
 		return NULL;
 	}
+
+	if (registro < node->cin.registro)
+	{
+		node->esq = remover_cin(node->esq, registro);
+	}
+	else if (registro > node->cin.registro)
+	{
+		node->dir = remover_cin(node->dir, registro);
+	}
 	else
 	{
-		if (registro == node->cin.registro)
+		if (node->esq == NULL)
 		{
-			if (node->esq == NULL && node->dir == NULL)
-			{
-				free(node);
-				return NULL;
-			}
-			else
-			{
-				if (node->esq != NULL && node->dir != NULL)
-				{
-					Node *aux = node->esq;
-					while (aux->dir != NULL)
-						aux = aux->dir;
-					node->cin = aux->cin;
-					node->esq = remover_cin(node->esq, aux->cin.registro);
-					return node;
-				}
-				else
-				{
-					Node *aux;
-					if (node->esq != NULL)
-						aux = node->esq;
-					else
-						aux = node->dir;
-					free(node);
-					return aux;
-				}
-			}
+			Node *temp = node->dir;
+			free(node);
+			return temp;
 		}
-		else
+		else if (node->dir == NULL)
 		{
-			if (registro == node->cin.registro)
-				node->esq = remover_cin(node->esq, registro);
-			else
-				node->dir = remover_cin(node->dir, registro);
+			Node *temp = node->esq;
+			free(node);
+			return temp;
 		}
-		node->altura = maior(alturaNode(node->esq), alturaNode(node->dir)) + 1;
 
-		node = balancear(node);
-
-		return node;
+		Node *temp = node->esq;
+		while (temp->dir != NULL)
+		{
+			temp = temp->dir;
+		}
+		node->cin = temp->cin;
+		node->esq = remover_cin(node->esq, temp->cin.registro);
 	}
 }
 
+
 Node *busca_registro(Node *arvore, long registro)
 {
-	if (!arvore)
-	{
-		return NULL;
-	}
-
-	if (registro == arvore->cin.registro)
-	{
+	if (arvore == NULL || arvore->cin.registro == registro)
 		return arvore;
-	}
-	else if (registro < arvore->cin.registro)
+
+	if (registro < arvore->cin.registro)
+		return busca_registro(arvore->esq, registro);
+
+	return busca_registro(arvore->dir, registro);
+}
+
+void imprimir_cins(Node *arvore)
+{
+	if (arvore != NULL)
 	{
 		return buscaRegistro(arvore->esq, registro);
 	}
@@ -281,27 +277,33 @@ void imprimir_cins(Node *arvore)
 
 void deleta_arvore(Node *arvore)
 {
-	if (arvore)
+	if (arvore != NULL)
 	{
 		deleta_arvore(arvore->esq);
 		deleta_arvore(arvore->dir);
 		free(arvore);
 	}
 }
-	void imprimir_cins(Node *arvore)
+
+void imprimir_cins(Node *arvore)
+{
+	relatorio_faixaEtaria(raiz->esq, idadeInicial, idadeFinal, anoAtual, pessoas);
+
+	int idade = calcular_idade(raiz->cin.data[2], anoAtual);
+	if (idade >= idadeInicial && idade <= idadeFinal)
 	{
-		if (arvore)
-		{
-			imprimir_veiculos(arvore->esq);
-			printf("%s;%s;%s;%d;%d;%d;%d;%d;\n",
-				arvore->cin.nome,
-				arvore->cin.Naturalidade->cidade,
-				arvore->cin.Naturalidade->estado,
-				arvore->cin.Naturalidade->rg,
-				arvore->cin.data[0],
-				arvore->cin.data[1],
-				arvore->cin.data[2],
-				arvore->cin.registro);
-			imprimir_cins(arvore->dir);
-		}
+		imprimir_veiculos(arvore->esq);
+		printf("%s;%s;%s;%d;%d;%d;%d;%d;\n",
+			arvore->cin.nome,
+			arvore->cin.Naturalidade->cidade,
+			arvore->cin.Naturalidade->estado,
+			arvore->cin.Naturalidade->rg,
+			arvore->cin.data[0],
+			arvore->cin.data[1],
+			arvore->cin.data[2],
+			arvore->cin.registro);
+		imprimir_cins(arvore->dir);
 	}
+
+	relatorio_faixaEtaria(raiz->dir, idadeInicial, idadeFinal, anoAtual, pessoas);
+}
