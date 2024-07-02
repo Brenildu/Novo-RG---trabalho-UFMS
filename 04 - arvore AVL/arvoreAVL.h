@@ -32,6 +32,8 @@ typedef struct Node
 
 int maior(int a, int b);
 
+int obter_altura(Node *N);
+
 short fatorDeBalanceamento(Node *node);
 
 Node *rotacaoSE(Node *node);
@@ -44,32 +46,30 @@ Node *rotacaoDE(Node *ramo);
 
 Node *balancear(Node *raiz);
 
-Node *novoNode(CIN cin);
+Node *novo_node(CIN cin);
 
-Node *inserir_CIN(Node *node, CIN cin);
+Node *inserir_cin(Node *node, CIN cin);
 
-Node *maiorValorNode(Node *no);
+Node *maior_ValorNode(Node *no);
 
-Node *removerCIN(Node *raiz, long registro);
+Node *remover_cin(Node *raiz, long registro);
 
-Node *buscaRegistro(Node *arvore, long registro);
+Node *busca_registro(Node *arvore, long registro);
 
 Node *procurar_CIN(Node *raizAntigoPadrao, Node *raizNovoPadrao, const char *placa);
 
-Node *buscaCIN(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro);
+Node *busca_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro);
 
-void imprimirCINs(Node *arvore);
+void imprimir_cins(Node *arvore);
+
+int calcular_idade(int anoNascimento, int anoAtual);
+
+void relatorio_faixaEtaria(Node *raiz, int idadeInicial, int idadeFinal, int anoAtual, Node **pessoas);
+
+void agruparPorEstado(Node *raiz, Node **pessoas);
+
+void relatorio_porFaixaEtaria(Node *raiz, int idadeInicial, int idadeFinal, int anoAtual);
 
 void deleta_arvore(Node *arvore);
-
-int quantidade_de_cin(Node *raiz);
-
-Node *alterarRegistro(Node **raizAntigoPadrao, Node **raizNovoPadrao, const long *registro);
-
-void relatorio_anos(Node *raiz, int anoInicial, int anoFinal);
-
-void relatorio_intervaloAnos(Node *raizAntigoPadrao, Node *raizNovoPadrao, int anoInicial, int anoFinal);
-
-void relatorio_porEstado(Node listaAntigoPadrao[], Node listaNovoPadrao[]);
 
 #endif
