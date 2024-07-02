@@ -245,7 +245,7 @@ void agruparPorEstado(Node *raiz, Node **pessoas)
 	}
 }
 
-void relatorio_porFaixaEtaria(Node *raiz, int idadeInicial, int idadeFinal, int anoAtual)
+void relatorio_completo(Node *raiz, int idadeInicial, int idadeFinal, int anoAtual)
 {
 	Node *pessoas = NULL, *pessoasAgrupadas = NULL;
 

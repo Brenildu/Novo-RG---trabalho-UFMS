@@ -68,7 +68,7 @@ void relatorio_faixaEtaria(Node *raiz, int idadeInicial, int idadeFinal, int ano
 
 void agruparPorEstado(Node *raiz, Node **pessoas);
 
-void relatorio_porFaixaEtaria(Node *raiz, int idadeInicial, int idadeFinal, int anoAtual);
+void relatorio_completo(Node *raiz, int idadeInicial, int idadeFinal, int anoAtual);
 
 void deleta_arvore(Node *arvore);
 
