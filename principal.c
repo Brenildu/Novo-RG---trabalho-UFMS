@@ -5,50 +5,65 @@
 #include <time.h>
 
 typedef struct{
-	char cidade[31];
-	char estado[3];
-	int rg;
-}Naturalidade;
+    char cidade[31];
+    char estado[3];
+    int rg;
+} Naturalidade;
 
-typedef struct Pessoa{
-	int num_registro;
-	char nome[70];
-	int dataNasc;
-	Naturalidade naturalidade[27];
-	char estadoNasc;
-	struct Pessoa *prox;
-}Pessoa;
+typedef struct CIN{
+    long int num_registro;
+    char nome[70];
+    int dataNasc;
+    Naturalidade naturalidade[27];
+    struct CIN *prox;
+} CIN;
 
-void addPessoa(Pessoa **lst, Pessoa novaPessoa){
-	Pessoa *q = *lst;
+void addCIN(CIN **lst, CIN pessoa) {
+    CIN *novaCIN = (CIN *)malloc(sizeof(CIN));
+    if (novaCIN == NULL) {
+        perror("Error allocating memory");
+        return;
+    }
+    *novaCIN = pessoa;
+    novaCIN->prox = NULL;
 
-	Pessoa *novo = (Pessoa*)malloc(sizeof(Pessoa));
-	if(novo == NULL){
-		printf("Erro ao alocar a memória");
-		return;
-	}
-	
-	*novo = novaPessoa;
-	novo->prox = NULL;
-	
-	if(*lst == NULL || (*lst)->num_registro >= novo->num_registro){
-		novo->prox = *lst;
-		*lst = novo;
-	} else{
-		while(q->prox != NULL && (q->prox)->num_registro < novo->num_registro){
-			q = q->prox;
-		}
-		novo->prox = q->prox;
-		q->prox = novo;
-	}
-	
-	//printf("Estou no add");
+    // Se a lista estiver vazia ou a nova pessoa deve ser a primeira
+    if (*lst == NULL || (*lst)->num_registro > pessoa.num_registro) {
+        novaCIN->prox = *lst;
+        *lst = novaCIN;
+        return;
+    }
+
+    CIN *current = *lst;
+    while (current->prox != NULL && current->prox->num_registro < pessoa.num_registro) {
+        current = current->prox;
+    }
+
+    // Verifica se a pessoa já está na lista
+    if (current->num_registro == pessoa.num_registro) {
+        // Verifica se o RG já existe para o estado
+        for (int i = 0; i < 27; i++) {
+            if (strcmp(current->naturalidade[i].estado, pessoa.naturalidade[0].estado) == 0) {
+                printf("A pessoa %s já possui um RG para o estado %s.\n", pessoa.nome, pessoa.naturalidade[0].estado);
+                free(novaCIN);
+                return;
+            } else if (current->naturalidade[i].estado[0] == '\0') {
+                current->naturalidade[i] = pessoa.naturalidade[0];
+                printf("Novo RG adicionado para %s no estado %s.\n", pessoa.nome, pessoa.naturalidade[0].estado);
+                free(novaCIN);
+                return;
+            }
+        }
+    } else {
+        novaCIN->prox = current->prox;
+        current->prox = novaCIN;
+    }
 }
 
 char *readFile(const char *filename) {
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
-        perror("Error opening file, estou aqui");
+        perror("Error opening file");
         return NULL;
     }
 
@@ -70,15 +85,20 @@ char *readFile(const char *filename) {
     return data;
 }
 
-void printPessoa(Pessoa *pessoa) {
-    // Implementação da impressão de pessoa
-    // Substitua ou implemente conforme necessário
+void printCIN(CIN *pessoa) {
+    int i;
+    printf("Numero de Registro: %ld\n", pessoa->num_registro);
     printf("Nome: %s\n", pessoa->nome);
     printf("Data de Nascimento: %d\n", pessoa->dataNasc);
-    printf("Naturalidade: %s, %s\n", pessoa->naturalidade->cidade, pessoa->naturalidade->estado);
-    printf("RG: %d\n", pessoa->naturalidade->rg);
-    printf("CPF/Num Registro: %d\n", pessoa->num_registro);
-    printf("Estado de Nascimento: %c\n", pessoa->estadoNasc);
+    
+    for(i=0;i<26;i++){
+    	if(pessoa->naturalidade[i].rg!=0){
+    		printf("RGs:\n");
+    		printf("RG: %d\n", pessoa->naturalidade[i].rg);
+    		printf("Naturalidade: %s, %s\n", pessoa->naturalidade[i].cidade, pessoa->naturalidade[i].estado);
+    	}
+    }
+    
     printf("\n");
 }
 
@@ -88,27 +108,36 @@ int parseDate(const char *date_str) {
     return day * 1000000 + month * 10000 + year;
 }
 
-void *buscaPessoa(Pessoa *lst, int cpf){
-	Pessoa *q;
-	q = lst;
-	while(q!=NULL || q->num_registro==cpf){
-		if (q->num_registro == cpf) { // Considerando que o CPF está armazenado em 'num_registro'
-		    printf("Busca\n");
-		    printPessoa(q);
-		    break;
-		}
-		q = q->prox;
+void buscaCIN(CIN *lst, long int cpf) {
+    CIN *q = lst;
+    while (q != NULL) {
+        if (q->num_registro == cpf) {
+            printf("CIN encontrada:\n");
+            printCIN(q);
+            return;
         }
+        q = q->prox;
+    }
+    printf("CIN com CPF %ld não encontrada.\n", cpf);
 }
 
-Pessoa *parseJSON(const char *filename, Pessoa *lst) {
-    printf("Opening file: %s\n", filename);
+
+void startTimer(struct timespec *start) {
+    clock_gettime(CLOCK_MONOTONIC, start);
+}
+
+double stopTimer(struct timespec *start, struct timespec *end) {
+    clock_gettime(CLOCK_MONOTONIC, end);
+    double elapsed = (end->tv_sec - start->tv_sec) * 1e9; // segundos para nanosegundos
+    return elapsed += (end->tv_nsec - start->tv_nsec); // nanosegundos
+}
+
+CIN *parseJSON(const char *filename, CIN *lst) {
     char *json_data = readFile(filename);
     if (json_data == NULL) {
         return NULL;
     }
 
-    // Parsear o JSON
     struct json_object *parsed_json = json_tokener_parse(json_data);
     if (parsed_json == NULL) {
         fprintf(stderr, "Error parsing JSON data\n");
@@ -116,10 +145,8 @@ Pessoa *parseJSON(const char *filename, Pessoa *lst) {
         return NULL;
     }
 
-    // Extrair informações do JSON
     struct json_object *estado;
     struct json_object *cidadaos;
-    struct json_object *cidadao;
 
     if (!json_object_object_get_ex(parsed_json, "uf", &estado)) {
         fprintf(stderr, "Error: missing 'uf' field\n");
@@ -135,10 +162,9 @@ Pessoa *parseJSON(const char *filename, Pessoa *lst) {
         return NULL;
     }
 
-    // Iterar sobre cada cidadão no array
     for (size_t i = 0; i < json_object_array_length(cidadaos); i++) {
-        cidadao = json_object_array_get_idx(cidadaos, i);
-        Pessoa pessoa;
+        struct json_object *cidadao = json_object_array_get_idx(cidadaos, i);
+        CIN pessoa;
         pessoa.prox = NULL;
 
         struct json_object *nome;
@@ -158,10 +184,9 @@ Pessoa *parseJSON(const char *filename, Pessoa *lst) {
         json_object_object_get_ex(naturalidade, "cidade", &cidade);
         json_object_object_get_ex(naturalidade, "estado", &estado_nat);
 
-        // Preencher a estrutura Pessoa
         if (nome && json_object_is_type(nome, json_type_string)) {
             strncpy(pessoa.nome, json_object_get_string(nome), sizeof(pessoa.nome)-1);
-            pessoa.nome[sizeof(pessoa.nome)-1] = '\0'; // Garantir terminação nula
+            pessoa.nome[sizeof(pessoa.nome)-1] = '\0';
         }
 
         if (data_nasc && json_object_is_type(data_nasc, json_type_string)) {
@@ -169,27 +194,27 @@ Pessoa *parseJSON(const char *filename, Pessoa *lst) {
         }
 
         if (rg && json_object_is_type(rg, json_type_string)) {
-            pessoa.naturalidade[0].rg = atoi(json_object_get_string(rg)); // Exemplo: armazenar o RG na primeira posição do array
+            pessoa.naturalidade->rg = atoi(json_object_get_string(rg));
         }
 
         if (cidade && json_object_is_type(cidade, json_type_string)) {
-            strncpy(pessoa.naturalidade[0].cidade, json_object_get_string(cidade), sizeof(pessoa.naturalidade[0].cidade)-1);
-            pessoa.naturalidade[0].cidade[sizeof(pessoa.naturalidade[0].cidade)-1] = '\0'; // Garantir terminação nula
+            strncpy(pessoa.naturalidade->cidade, json_object_get_string(cidade), sizeof(pessoa.naturalidade->cidade)-1);
+            pessoa.naturalidade->cidade[sizeof(pessoa.naturalidade->cidade)-1] = '\0';
         }
 
         if (estado_nat && json_object_is_type(estado_nat, json_type_string)) {
-            strncpy(pessoa.naturalidade[0].estado, json_object_get_string(estado_nat), sizeof(pessoa.naturalidade[0].estado)-1);
-            pessoa.naturalidade[0].estado[sizeof(pessoa.naturalidade[0].estado)-1] = '\0'; // Garantir terminação nula
+            strncpy(pessoa.naturalidade->estado, json_object_get_string(estado_nat), sizeof(pessoa.naturalidade->estado)-1);
+            pessoa.naturalidade->estado[sizeof(pessoa.naturalidade->estado)-1] = '\0';
         }
 
         if (cpf && json_object_is_type(cpf, json_type_string)) {
-            pessoa.num_registro = atoi(json_object_get_string(cpf));  // Converter string para int
+            //printf("CPF (antes da conversão): %s\n", json_object_get_string(cpf));  // Debug: Verificar valor do CPF
+            pessoa.num_registro = atol(json_object_get_string(cpf));
+            //printf("CPF (depois da conversão): %ld\n", pessoa.num_registro);  // Debug: Verificar valor do CPF convertido
         }
-        
-        pessoa.estadoNasc = json_object_get_string(estado)[0];
 
-        // Adicionar pessoa à lista
-        addPessoa(&lst, pessoa);
+	//printCIN(&pessoa);
+        addCIN(&lst, pessoa);
     }
 
     json_object_put(parsed_json);
@@ -198,24 +223,201 @@ Pessoa *parseJSON(const char *filename, Pessoa *lst) {
     return lst;
 }
 
+void salvarDadosTxt(CIN *lst, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+    
 
-int main(){
-	printf("Hello Wolrd\n");
-	int aux;
-	
-	Pessoa *lst = NULL;
-	lst = parseJSON("TO.erguf", lst);
+    CIN *p = lst;
+    while (p != NULL) {
+    	
+        fprintf(file, "Num Registro: %ld\n", p->num_registro);
+        fprintf(file, "Nome: %s\n", p->nome);
+        fprintf(file, "Data de Nascimento: %d\n", p->dataNasc);
+        fprintf(file, "Naturalidade: %s, %s\n", p->naturalidade[0].cidade, p->naturalidade[0].estado);
+        int i = 0;
+        while (i < 27 && p->naturalidade[i].rg > 0) {
+            fprintf(file, "Cidade %d: %s, %s\n", i + 1, p->naturalidade[i].cidade, p->naturalidade[i].estado);
+            fprintf(file, "RG: %d\n", p->naturalidade[i].rg);
+            i++;
+        }
 
-	Pessoa *p = lst;
-	while (p != NULL) {
-		printPessoa(p);
-		p = p->prox;
+        fprintf(file, "\n");
+
+        p = p->prox;
+    }
+
+    fclose(file);
+}
+
+CIN *carregarDadosTxt(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return NULL;
+    }
+
+    CIN *lst = NULL;
+    char line[1024];  // Buffer para armazenar cada linha lida do arquivo
+
+    CIN pessoa;
+    memset(&pessoa, 0, sizeof(CIN));  // Inicializa a estrutura com zeros
+
+    int naturalidadeIndex = 0;
+
+    while (fgets(line, sizeof(line), file) != NULL) {
+        if (strncmp(line, "Num Registro: ", 14) == 0) {
+            sscanf(line, "Num Registro: %ld", &pessoa.num_registro);
+        } else if (strncmp(line, "Nome: ", 6) == 0) {
+            sscanf(line, "Nome: %[^\n]", pessoa.nome);
+        } else if (strncmp(line, "Data de Nascimento: ", 20) == 0) {
+            sscanf(line, "Data de Nascimento: %d", &pessoa.dataNasc);
+        } else if (strncmp(line, "Cidade ", 7) == 0) {
+            sscanf(line, "Cidade %*d: %[^,], %s", pessoa.naturalidade[naturalidadeIndex].cidade, pessoa.naturalidade[naturalidadeIndex].estado);
+        } else if (strncmp(line, "RG: ", 4) == 0) {
+            sscanf(line, "RG: %d", &pessoa.naturalidade[naturalidadeIndex].rg);
+            naturalidadeIndex++;
+        }
+
+        // Verifica se uma nova pessoa deve ser adicionada
+        if (line[0] == '\n' || line[0] == '\r') {
+            if (pessoa.nome[0] != '\0') {
+                addCIN(&lst, pessoa);
+                memset(&pessoa, 0, sizeof(CIN));  // Reseta a estrutura para o próximo bloco de dados
+                naturalidadeIndex = 0;
+            }
+        }
+    }
+
+    // Adiciona a última pessoa, caso o arquivo não termine com uma nova linha
+    if (pessoa.nome[0] != '\0') {
+        addCIN(&lst, pessoa);
+    }
+
+    fclose(file);
+    return lst;
+}
+
+void menu(){
+	printf("Olá, seja bem-vindo ao Cadastro Nova Carteira de Identidade Nacional\n\nPor favor, selecione a operação desejada:\n");
+	printf("1 - Buscar por Número de Cadastro\n");
+	printf("2 - Gerar Relatório\n");
+	printf("3 - Sair\n");
+}
+
+/*void addCINOrdenadaPorNome(CIN **lst, CIN pessoa) {
+    CIN *novo = (CIN *)malloc(sizeof(CIN));
+    *novo = pessoa;
+    novo->prox = NULL;
+
+    if (*lst == NULL || strcmp(novo->nome, (*lst)->nome) < 0) {
+        novo->prox = *lst;
+        *lst = novo;
+    } else {
+        CIN *atual = *lst;
+        while (atual->prox != NULL && strcmp(novo->nome, atual->prox->nome) >= 0) {
+            atual = atual->prox;
+        }
+        novo->prox = atual->prox;
+        atual->prox = novo;
+    }
+}
+
+void destruirLista(CIN *lst) {
+    CIN *tmp;
+    while (lst != NULL) {
+        tmp = lst;
+        lst = lst->prox;
+        free(tmp);
+    }
+}
+
+int calcularIdade(int anoAtual, int anoNascimento) {
+    anoNascimento = anoNascimento%10000;
+    
+    return anoAtual - anoNascimento;
+}
+
+void gerarRelatorioIdadePorEstado(CIN *lst, int idadeMin, int idadeMax, int anoAtual) {
+    CIN *lstPorEstado[27] = {NULL}; // Array de listas, um para cada estado (0-26)
+
+    // Filtrar pessoas pela faixa etária e agrupar por estado
+    while (lst != NULL) {
+        int idade = calcularIdade(anoAtual, lst->dataNasc);
+        if (idade >= idadeMin && idade <= idadeMax) {
+            // Adicionar pessoa na lista correspondente ao estado
+            int estadoIdx = 0; // Implemente aqui a lógica para determinar o índice do estado se necessário
+            if (estadoIdx >= 0 && estadoIdx < 27) {
+                addCINOrdenadaPorNome(&lstPorEstado[estadoIdx], *lst);
+            }
+        }
+        lst = lst->prox;
+    }
+
+    // Imprimir relatório agrupado por estado
+    for (int i = 0; i < 27; i++) {
+        if (lstPorEstado[i] != NULL) {
+            // Implemente aqui a lógica para imprimir o relatório por estado se necessário
+            printf("Estado %d:\n", i);
+            CIN *p = lstPorEstado[i];
+            while (p != NULL) {
+                printf("Num Registro: %ld\n", p->num_registro);
+                printf("Nome: %s\n", p->nome);
+                printf("Data de Nascimento: %d\n", p->dataNasc);
+                // Imprimir outros dados conforme necessário
+                p = p->prox;
+            }
+            printf("\n");
+        }
+    }
+
+    // Destruir listas temporárias
+    for (int i = 0; i < 27; i++) {
+        destruirLista(lstPorEstado[i]);
+    }
+}*/
+
+int main(int argc, char *argv[]) {
+
+	struct timespec start, end;
+	long long  time_used;
+	//printf("Hello World\n");
+	long int aux;
+	int op, idadeMin, idadeMax;
+
+	CIN *lst = carregarDadosTxt("dados.txt");
+    
+    	for (int i = 1; i < argc; i++) {
+        	printf("Processing file: %s\n", argv[i]);
+        	lst = parseJSON(argv[i], lst);
+   	}
+	while(op!=3)
+	{
+		menu();
+		scanf("%d", &op);
+		if(op==1){
+			printf("Digite o numero de registro: ");
+    			scanf("%ld", &aux);
+			startTimer(&start);
+    			buscaCIN(lst, aux);
+    			time_used = stopTimer(&start, &end);
+    			printf("Tempo utilizado: %lld nanosegundos\n",time_used);
+		}
+		if(op==2){
+			/*printf("Digite a idade minima: ");
+			scanf("%d", &idadeMin);
+			printf("Digite a idade maxima: ");
+			scanf("%d", &idadeMax);
+			gerarRelatorioIdadePorEstado(lst, idadeMin, idadeMax, 2024);*/
+			printf("Relatorio\n");
+		}
 	}
     
-	printf("Digite o numero de registro");
-	scanf("%d",&aux);
-	
-	buscaPessoa(lst, aux);
+	salvarDadosTxt(lst, "dados.txt");
 
-    return 0;
+	return 0;
 }
+
