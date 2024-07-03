@@ -23,6 +23,7 @@ typedef struct
 	Naturalidade Naturalidade;
 	long registro;
 	Naturalidade registros_emetidos[26];
+	int num_registros_emetidos;
 
 } CIN;
 
@@ -49,21 +50,23 @@ int valor_estado(const char *sigla);
 
 long funcao_hash(long registro);
 
-void insere_tabela(No tabela[], No *novo);
-
-void insere_estado(Estado estados[], No *novo, const char *sigla);
-
-long remover_cin(No *lista, long registro);
-
-long remover_cin_estado(Estado estados[], long registro);
-
 No *criar_no(CIN cin);
 
 Estado *criar_estado();
 
+void inserir_ordenado(No *lista, No *novo);
+
 void inserir_lista_ordem_alfabetica(No *lista, No *novo);
 
 No *busca_cin(No tabela_cin[], long registro);
+
+void insere_tabela(No tabela[], No *novo);
+
+void insere_estado(Estado estados[], No *novo, const char *sigla);
+
+long remover_cin(No tabela[], Estado estados[],long registro);
+
+void remover_cin_estado(Estado estados[], No *no_removido);
 
 void imprimir_cins_idade(No *lista, int anoInicial, int anoFinal);
 

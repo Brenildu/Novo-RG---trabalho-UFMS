@@ -127,65 +127,6 @@ long funcao_hash(long registro)
 	return chave;
 }
 
-// Inserir na tabela hash
-void insere_tabela(No tabela[], No *novo)
-{
-	long chave = funcao_hash(novo->cin.registro);
-	inserir_lista_ordem_alfabetica(tabela[chave].prox, novo);
-}
-
-// Inserir no estado
-void insere_estado(Estado estados[], No *novo, const char *sigla)
-{
-	int i = valor_estado(sigla), alf = obter_posicao_alfabetica(novo->cin.nome[0]);
-
-	if (i >= 0 && alf >= 0)
-	{
-		inserir_lista_ordem_alfabetica(estados[i].tabela[alf].prox, novo);
-	}
-}
-
-// Remover da tabela de CIN
-long remover_cin(No *lista, long registro)
-{
-	No *p = lista;
-	No *no_removido = NULL;
-	long reg_removido = -1;
-
-	while (p->prox && p->prox->cin.registro != registro)
-	{
-		p = p->prox;
-	}
-
-	if (p->prox)
-	{
-		no_removido = p->prox;
-		p->prox = no_removido->prox;
-		reg_removido = no_removido->cin.registro;
-		free(no_removido);
-	}
-
-	return reg_removido;
-}
-
-// Remover da tabela de estados
-long remover_cin_estado(Estado estados[], long registro)
-{
-	int i;
-	long reg_removido = -1;
-
-	for (i = 0; i < 27; i++)
-	{
-		reg_removido = remover_cin(estados[i].tabela, registro);
-		if (reg_removido != -1)
-		{
-			break;
-		}
-	}
-
-	return reg_removido;
-}
-
 // Criar um novo nó
 No *criar_no(CIN cin)
 {
@@ -216,6 +157,28 @@ Estado *criar_estado()
 	return estado;
 }
 
+/*Inserção para a busca de cin*/
+void inserir_ordenado(No *lista, No *novo){
+	No *aux;
+
+	if (lista == NULL || novo->cin.registro == lista->cin.registro)
+	{
+		novo->prox = lista->prox;
+		lista->prox = novo;
+	}
+	else
+	{
+		aux = lista->prox;
+		while (aux != NULL && novo->cin.registro == lista->cin.registro > 0)
+		{
+			aux = aux->prox;
+		}
+		novo->prox = aux;
+		aux = novo;
+	}
+
+}
+
 // Inserir na lista em ordem alfabética
 void inserir_lista_ordem_alfabetica(No *lista, No *novo)
 {
@@ -241,17 +204,96 @@ void inserir_lista_ordem_alfabetica(No *lista, No *novo)
 // Buscar um CIN na tabela hash
 No *busca_cin(No tabela_cin[], long registro)
 {
-	No *p;
+	No *p, *q;
 	int chave = funcao_hash(registro);
 
 	p = tabela_cin[chave].prox;
-	while (p && p->cin.registro != registro)
+	q = tabela_cin[chave].prox;
+	while (p && p->cin.registro > registro)
 	{
+		q = p;
 		p = p->prox;
 	}
 
-	return p;
+	return q;
 }
+
+// Inserir na tabela hash
+void insere_tabela(No tabela[], No *novo)
+{
+	long chave = funcao_hash(novo->cin.registro);
+	inserir_ordenado(tabela[chave].prox, novo);
+}
+
+// Inserir no estado
+void insere_estado(Estado estados[], No *novo, const char *sigla)
+{
+	int i = valor_estado(sigla), alf = obter_posicao_alfabetica(novo->cin.nome[0]);
+
+	if (i >= 0 && alf >= 0)
+	{
+		inserir_lista_ordem_alfabetica(estados[i].tabela[alf].prox, novo);
+	}
+}
+
+// Remover da tabela de CIN
+long remover_cin(No tabela[], Estado estados[],long registro)
+{
+	No *p = tabela->prox;
+	No *no_removido = NULL;
+	long reg_removido = -1;
+
+	p = busca_cin(tabela, registro);
+
+	if (p != tabela->prox && p->prox->cin.registro == registro)
+	{
+		no_removido = p->prox;
+		p->prox = no_removido->prox;
+		reg_removido = no_removido->cin.registro;
+
+		remover_cin_estado(estados, no_removido);
+		free(no_removido);
+	}else{
+		if(p == tabela->prox){
+			no_removido = tabela->prox;
+			tabela->prox = no_removido->prox;
+			reg_removido = no_removido->cin.registro;
+
+			remover_cin_estado(estados, no_removido);
+			free(no_removido);
+		}
+	}
+
+	return reg_removido;
+}
+
+// Remover da tabela de estados
+void remover_cin_estado(Estado estados[], No *no_removido)
+{
+	int i, valor_sigla;
+	No *p;
+
+	if(no_removido != NULL){
+		for(i = 0; i < no_removido->cin.num_registros_emetidos; i++){
+			valor_sigla = valor_estado(no_removido->cin.registros_emetidos[i].estado);
+			p = busca_cin(estados[valor_sigla].tabela, no_removido->cin.registro);
+
+			if (p && p->prox->cin.registro == no_removido->cin.registro)
+			{
+				no_removido = p->prox;
+				p->prox = no_removido->prox;
+				free(no_removido);
+			}else{
+				if(p == estados[i].tabela->prox){
+					no_removido = estados[i].tabela->prox;
+					estados[i].tabela->prox = no_removido->prox;
+					free(no_removido);
+				}
+			}
+		}
+	}
+}
+
 
 // Imprimir os cidadaos com certa idade
 void imprimir_cins_idade(No *lista, int anoInicial, int anoFinal)

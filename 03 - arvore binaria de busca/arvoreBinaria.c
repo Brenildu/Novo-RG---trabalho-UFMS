@@ -16,28 +16,163 @@ Node *novo_node(CIN cin)
 	return NULL;
 }
 
-Node *inserir_cin(Node *node, CIN cin)
-{
-	Node *novo;
+Estado *novo_estado(int valor_sigla){
+	Estado *novo_estado = (Estado *)malloc(sizeof(Estado));
 
-	if (node == NULL)
+	if(novo_estado){
+		novo_estado->node = NULL;
+		novo_estado->dir = NULL;
+		novo_estado->esq = NULL;
+		novo_estado->sigla = valor_sigla;
+
+		return novo_estado;
+	}
+	return NULL;
+}
+
+const char *siglas_estados[] = {
+	"AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA",
+	"MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN",
+	"RO", "RR", "RS", "SC", "SE", "SP", "TO"};
+
+// Obter o valor correspondente ao estado
+int valor_estado(const char *sigla)
+{
+	int i;
+	for (i = 0; i < 27; i++)
 	{
-		novo = novo_node(cin);
+		if (strcmp(siglas_estados[i], sigla) == 0)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior){
+	if(estado == NULL){
+		return anterior;
+	}
+
+	if(estado->sigla == valor_sigla)
+		return estado;
+	else if(valor_sigla > estado->sigla )
+		return busca_estado(estado->dir, valor_sigla, estado);
+	else
+		return busca_estado(estado->esq, valor_sigla, estado);
+}
+
+Estado *popular_estados(){
+	int i;
+	Estado *raiz, *novo, *aux;
+	raiz = novo_estado(13); 
+
+	if(raiz){
+		for(i = 14; i < 27; i = i+2){
+			aux = busca_estado(raiz, i, raiz);
+			if(aux != NULL){
+				novo = novo_estado(i);
+				if(novo->sigla > aux->sigla)
+					aux->dir = novo;
+			}else{
+				return NULL;
+			}
+		}
+
+		for(i = 15; i < 27; i = i+2){
+			aux = busca_estado(raiz, i, raiz);
+			if(aux != NULL){
+				novo = novo_estado(i);
+				if(novo->sigla > aux->sigla)
+					aux->dir = novo;
+			}else{
+				return NULL;
+			}
+		}
+
+		for(i = 0; i < 13; i = i+2){
+			aux = busca_estado(raiz, i, raiz);
+			if(aux != NULL){
+				novo = novo_estado(i);
+				if(novo->sigla > aux->sigla)
+					aux->dir = novo;
+			}else{
+				return NULL;
+			}
+		}
+
+		for(i = 1; i < 13; i = i+2){
+			aux = busca_estado(raiz, i, raiz);
+			if(aux != NULL){
+				novo = novo_estado(i);
+				if(novo->sigla > aux->sigla)
+					aux->dir = novo;
+			}else{
+				return NULL;
+			}
+		}
+	}
+}
+
+
+void inserir_cin(Node **node, CIN cin)
+{
+	Node *novo, *p;
+
+	p = *node;
+	novo = novo_node(cin);
+	if (p == NULL)
+	{
 		if (novo)
-			return novo;
+			*node = novo;
 		else
 			printf("Falha ao tentar alocar memória para o registro: %ld\n", cin.registro);
-		return NULL;
+
 	}
-	if (cin.registro < node->cin.registro)
+	else if (cin.registro < p->cin.registro)
 	{
-		node->esq = inserir_cin(node->esq, cin);
+		inserir_cin(p->esq, cin);
 	}
-	else if (cin.registro > node->cin.registro)
+	else if (cin.registro > p->cin.registro)
 	{
-		node->dir = inserir_cin(node->dir, cin);
+		inserir_cin(p->dir, cin);
+	} else{
+		free(novo);
 	}
-	return node;
+}
+
+void insere_nome_ordem_alfabetica(Node **node ,CIN cin){
+	Node *novo, *p;
+
+	p = *node;
+	novo = novo_node(cin);
+	if (p == NULL)
+	{
+		if (novo)
+			*node = novo;
+		else
+			printf("Falha ao tentar alocar memória para o registro: %ld\n", cin.registro);
+
+	}
+	else if (strcmp(cin.nome, p->cin.nome) < 0)
+	{
+		insere_nome(p->esq, cin);
+	}
+	else if (strcmp(cin.nome, p->cin.nome) > 0)
+	{
+		insere_nome(p->dir, cin);
+	} else{
+		if(cin.registro != p->cin.registro){
+			insere_nome(p->esq, cin);
+		}else{
+			free(novo);
+		}
+	}
+
+}
+
+void insere_nome_estados(Estado *estados, Node *node, CIN cin, int valor_sigla){
+
 }
 
 Node *maior_ValorEsq(Node *no)
@@ -151,7 +286,6 @@ Node *busca_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro)
 	return no;
 }
 
-
 void relatorio_anos(Node *raiz, int anoInicial, int anoFinal)
 {
 
@@ -182,7 +316,6 @@ void relatorio_intervaloAnos(Node *raizAntigoPadrao, Node *raizNovoPadrao, int a
 	relatorio_anos(raizNovoPadrao, anoInicial, anoFinal);
 }
 
-
 void relatorio_porEstado(Node *rootAntigoPadrao, Node *rootNovoPadrao, char estado[3])
 {
 }
@@ -209,9 +342,9 @@ void deleta_arvore(Node *arvore)
 {
 	if (arvore)
 	{
-		if(arvore->esq)
+		if (arvore->esq)
 			deleta_arvore(arvore->esq);
-		if(arvore->dir)
+		if (arvore->dir)
 			deleta_arvore(arvore->dir);
 
 		free(arvore);

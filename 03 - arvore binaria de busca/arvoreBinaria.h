@@ -5,19 +5,20 @@
 #include<stdlib.h>
 #include<string.h>
 
-typedef struct{
+typedef struct
+{
 	char cidade[31];
 	char estado[3];
 	int rg;
-}Naturalidade;
+} Naturalidade;
 
 typedef struct
 {
 	char nome[70];
 	int data[3];
-	Naturalidade Naturalidade[26];
+	Naturalidade Naturalidade;
 	long registro;
-	int registros_emetidos;
+	Naturalidade registros_emetidos[26];
 
 } CIN;
 
@@ -28,9 +29,28 @@ typedef struct Node
     struct Node *esq;
 } Node;
 
+typedef struct Estado
+{
+	Node *node;
+	int sigla;
+	struct Estado *dir;
+	struct Estado *esq;
+} Estado;
+
+
 Node *novo_node(CIN cin);
 
-Node* inserir_cin(Node* node, CIN cin);
+Estado *novo_estado(int valor_sigla);
+
+int valor_estado(const char *sigla);
+
+Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior);
+
+Estado *popular_estados();
+
+void inserir_cin(Node **node, CIN cin);
+
+void insere_nome(Node **node ,CIN cin);
 
 Node* maior_ValorEsq(Node* no);
 
