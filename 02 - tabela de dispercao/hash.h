@@ -7,6 +7,7 @@
 #include <string.h>
 
 #define TAM (long)181817
+#define TAM_ALFABETICO 17
 
 typedef struct
 {
@@ -19,9 +20,9 @@ typedef struct
 {
 	char nome[70];
 	int data[3];
-	Naturalidade Naturalidade[26];
+	Naturalidade Naturalidade;
 	long registro;
-	int registros_emetidos;
+	Naturalidade registros_emetidos[26];
 
 } CIN;
 
@@ -33,41 +34,47 @@ typedef struct No
 
 typedef struct Estado
 {
-	struct No tabela[TAM];
+	struct No tabela[TAM_ALFABETICO];
 } Estado;
 
-void popular_hash(No tabela[]);
+void popular_hash(No tabela[], int tamanho);
 
 void popular_estados(Estado estados[]);
 
 long valor_sequencia(long registro);
 
+int obter_posicao_alfabetica(char letra);
+
+int valor_estado(const char *sigla);
+
 long funcao_hash(long registro);
 
-void insere_tabela(No lista_registro[], No *novo);
+void insere_tabela(No tabela[], No *novo);
 
-void inserir_no_inicio(No *lista, No *novo);
+void insere_estado(Estado estados[], No *novo, const char *sigla);
 
-long remover_registro(No *lista, long registro);
+long remover_cin(No *lista, long registro);
+
+long remover_cin_estado(Estado estados[], long registro);
 
 No *criar_no(CIN cin);
 
+Estado *criar_estado();
+
 void inserir_lista_ordem_alfabetica(No *lista, No *novo);
 
-No *busca_registro(No lista_registro[], long registro);
+No *busca_cin(No tabela_cin[], long registro);
 
-void relatorio_intervaloAnos(No lista_registro[], int anoInicial, int anoFinal);
+void imprimir_cins_idade(No *lista, int anoInicial, int anoFinal);
 
-void relatorio_porEstado(No lista_registro[]);
+void imprimir_cin(CIN cin);
 
-void imprimir_registros(No *lista);
+void relatorio(Estado estados[], int anoInicial, int anoFinal);
 
-void * imprimir_registros_estado(No *lista, char estado);
-
-void imprimir_tabela(No tabela[]);
-
-void finaliza_lista(No lista);
+void deleta_lista(No *lista);
 
 void deleta_tabela(No tabela[]);
+
+void deleta_estados(Estado estados[]);
 
 #endif

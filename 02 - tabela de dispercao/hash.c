@@ -1,287 +1,337 @@
 #include "hash.h"
 
-void popular_hash(No tabela[])
+// Preencher a tabela hash com NULL
+void popular_hash(No tabela[], int tamanho)
 {
 	int i;
-	for (i = 0; i < TAM; i++)
+	for (i = 0; i < tamanho; i++)
 	{
 		tabela[i].prox = NULL;
 	}
 }
 
-void popular_estados(Estado estados[]){
+// Preencher os estados com tabelas hash
+void popular_estados(Estado estados[])
+{
 	int i;
-	for(i = 0; i < 27; i++){
-		popular_hash(estados[i].tabela);
+	for (i = 0; i < 27; i++)
+	{
+		popular_hash(estados[i].tabela, TAM_ALFABETICO);
 	}
 }
 
+// Calcular o valor de sequência a partir do registro
 long valor_sequencia(long registro)
 {
-	long valor;
-
-	valor = registro % 100 + registro / 100;
+	long valor = registro % 100 + registro / 100;
 	return valor;
 }
 
+// Array com as siglas dos estados brasileiros em ordem alfabética
+const char *siglas_estados[] = {
+	"AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA",
+	"MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN",
+	"RO", "RR", "RS", "SC", "SE", "SP", "TO"};
+
+int obter_posicao_alfabetica(char letra)
+{
+	if (letra == 'a')
+	{
+		return 0;
+	}
+	if (letra == 'b')
+	{
+		return 1;
+	}
+	if (letra == 'c')
+	{
+		return 2;
+	}
+	if (letra == 'd')
+	{
+		return 3;
+	}
+	if (letra == 'e')
+	{
+		return 4;
+	}
+	if (letra == 'f')
+	{
+		return 5;
+	}
+	if (letra == 'g')
+	{
+		return 6;
+	}
+	if (letra == 'h' || letra == 'i' || letra == 'n' || letra == 'o')
+	{
+		return 7;
+	}
+	if (letra == 'j')
+	{
+		return 8;
+	}
+	if (letra == 'k' || letra == 'q' || letra == 'u' || letra == 'x' || letra == 'x' || letra == 'w' || letra == 'y' || letra == 'z')
+	{
+		return 9;
+	}
+	if (letra == 'l')
+	{
+		return 10;
+	}
+	if (letra == 'm')
+	{
+		return 11;
+	}
+	if (letra == 'p')
+	{
+		return 12;
+	}
+	if (letra == 'r')
+	{
+		return 13;
+	}
+	if (letra == 's')
+	{
+		return 14;
+	}
+	if (letra == 't')
+	{
+		return 15;
+	}
+	if (letra == 'v')
+	{
+		return 16;
+	}
+	return -1;
+}
+
+// Obter o valor correspondente ao estado
+int valor_estado(const char *sigla)
+{
+	int i;
+	for (i = 0; i < 27; i++)
+	{
+		if (strcmp(siglas_estados[i], sigla) == 0)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+// Função hash para calcular a chave
 long funcao_hash(long registro)
 {
-	long chave;
-
-	chave = valor_sequencia(registro) % 18181817;
-
+	long chave = valor_sequencia(registro) % TAM;
 	return chave;
 }
 
-void insere_tabela(No lista[], No *novo)
+// Inserir na tabela hash
+void insere_tabela(No tabela[], No *novo)
 {
-	long chave;
-
-	chave = funcao_hash(novo->cin.registro);
-
-	inserir_lista_ordem_alfabetica(&lista[chave], novo);
+	long chave = funcao_hash(novo->cin.registro);
+	inserir_lista_ordem_alfabetica(tabela[chave].prox, novo);
 }
 
+// Inserir no estado
+void insere_estado(Estado estados[], No *novo, const char *sigla)
+{
+	int i = valor_estado(sigla), alf = obter_posicao_alfabetica(novo->cin.nome[0]);
 
+	if (i >= 0 && alf >= 0)
+	{
+		inserir_lista_ordem_alfabetica(estados[i].tabela[alf].prox, novo);
+	}
+}
 
+// Remover da tabela de CIN
 long remover_cin(No *lista, long registro)
 {
-	No *p = lista->prox;
+	No *p = lista;
 	No *no_removido = NULL;
 	long reg_removido = -1;
 
-	if (p)
+	while (p->prox && p->prox->cin.registro != registro)
 	{
-		if(p->cin.registro == registro){
-			no_removido = p->prox;
-			p->prox = no_removido->prox;
-			reg_removido = no_removido->cin.registro;
-			free(no_removido);
-		}else{
-			while (p->prox != NULL && p->prox->cin.registro != registro)
-			{
-				p = p->prox;
-			}
-
-			if (p->prox != NULL)
-			{
-				no_removido = p->prox;
-				p->prox = no_removido->prox;
-				reg_removido = no_removido->cin.registro;
-				free(no_removido);
-			}
-		}
+		p = p->prox;
 	}
+
+	if (p->prox)
+	{
+		no_removido = p->prox;
+		p->prox = no_removido->prox;
+		reg_removido = no_removido->cin.registro;
+		free(no_removido);
+	}
+
 	return reg_removido;
 }
 
+// Remover da tabela de estados
+long remover_cin_estado(Estado estados[], long registro)
+{
+	int i;
+	long reg_removido = -1;
+
+	for (i = 0; i < 27; i++)
+	{
+		reg_removido = remover_cin(estados[i].tabela, registro);
+		if (reg_removido != -1)
+		{
+			break;
+		}
+	}
+
+	return reg_removido;
+}
+
+// Criar um novo nó
 No *criar_no(CIN cin)
 {
 	No *novo = malloc(sizeof(No));
-
-	novo->cin = cin;
-	novo->prox = NULL;
 
 	if (!novo)
 	{
 		printf("Falha ao alocar memória.\n");
 		return NULL;
 	}
+
+	novo->cin = cin;
+	novo->prox = NULL;
+
 	return novo;
 }
 
+// Criar um novo estado (adicionar inicialização da tabela)
+Estado *criar_estado()
+{
+	Estado *estado = malloc(sizeof(Estado));
+	if (!estado)
+	{
+		printf("Falha ao alocar memória para estado.\n");
+		return NULL;
+	}
+	popular_hash(estado->tabela, TAM_ALFABETICO);
+	return estado;
+}
+
+// Inserir na lista em ordem alfabética
 void inserir_lista_ordem_alfabetica(No *lista, No *novo)
 {
 	No *aux;
-	if (novo)
-	{
-		if (lista->prox == NULL)
-		{
-			novo->prox = NULL;
-			lista->prox = novo;
-		}
-		else if (strcmp(novo->cin.nome, lista->prox->cin.nome) < 0)
-		{
-			novo->prox = lista->prox;
-			lista->prox = novo;
-		}
-		else
-		{
-			aux = lista->prox;
-			while (aux->prox && strcmp(novo->cin.nome, lista->prox->cin.nome) >= 0)
-				aux = aux->prox;
 
-			if (strcmp(novo->cin.nome, lista->prox->cin.nome) != 0 || novo->cin.registro != lista->prox->cin.registro)
-			{
-				novo->prox = aux->prox;
-				aux->prox = novo;
-			}
-			else{
-				/*Ja cadastrado */
-			}
+	if (lista == NULL || strcmp(novo->cin.nome, lista->cin.nome) < 0)
+	{
+		novo->prox = lista->prox;
+		lista->prox = novo;
+	}
+	else
+	{
+		aux = lista->prox;
+		while (aux != NULL && strcmp(novo->cin.nome, aux->cin.nome) > 0)
+		{
+			aux = aux->prox;
 		}
+		novo->prox = aux;
+		aux = novo;
 	}
 }
 
-No *busca_registro(No lista_registro[], long registro)
+// Buscar um CIN na tabela hash
+No *busca_cin(No tabela_cin[], long registro)
 {
-	No *p, *no = NULL;
-	int chave;
+	No *p;
+	int chave = funcao_hash(registro);
 
-	chave = funcao_hash(registro);
-	if (chave < 0)
-		return NULL;
-
-	p = lista_registro[chave].prox;
-	while (p != NULL && p->cin.registro != registro)
+	p = tabela_cin[chave].prox;
+	while (p && p->cin.registro != registro)
 	{
 		p = p->prox;
 	}
-	if (p)
-	{
-		no = p;
-	}
 
-	return no;
+	return p;
 }
 
-void relatorio_intervaloAnos(No lista_registro[], int anoInicial, int anoFinal)
+// Imprimir os cidadaos com certa idade
+void imprimir_cins_idade(No *lista, int anoInicial, int anoFinal)
 {
-	No *no;
+	No *no = lista;
+
+	while (no)
+	{
+		if (no->cin.data[2] >= anoInicial && no->cin.data[2] <= anoFinal)
+		{
+			imprimir_cin(no->cin);
+		}
+
+		no = no->prox;
+	}
+}
+
+// Imprimir uma lista de CINs
+void imprimir_cin(CIN cin)
+{
+	printf("\"nome\": \"%s\",\n\"cpf\": \"%ld\",\n\"rg\": \"%d\",\n\"data_nasc\": \"%d/%d/%d\",\n\"naturalidade\":{\n\t\"cidade\": \"%s\",\n\t\"estado\": \"%s\"\n}\n",
+		   cin.nome,
+		   cin.registro,
+		   cin.Naturalidade.rg,
+		   cin.data[0],
+		   cin.data[1],
+		   cin.data[2],
+		   cin.Naturalidade.cidade,
+		   cin.Naturalidade.estado);
+}
+
+/*Relatorio faixa etária divido por estados*/
+void relatorio(Estado estados[], int anoInicial, int anoFinal)
+{
 	int i, j;
 
-	for (i = 0; i < TAM; i++)
+	for (i = 0; i < 27; i++)
 	{
-		no = lista_registro[i].prox;
-		while (no)
+		printf("\"uf\": \"%s\",\n\"cidadaos\n: [\n", siglas_estados[i]);
+		for (j = 0; j < 17; j++)
 		{
-			j = no->cin.registros_emetidos - 1;
-			if (no->cin.data[2] >= anoInicial && no->cin.data[2] <= anoFinal)
-			{
-				printf("%s;%s;%s;%d;%d;%d;%d;%ld;\n",
-					no->cin.nome,
-					no->cin.Naturalidade->cidade,
-					no->cin.Naturalidade->estado,
-					no->cin.Naturalidade->rg,
-					no->cin.data[0],
-					no->cin.data[1],
-					no->cin.data[2],
-					no->cin.registro);
-			}
-			while (j >= 0)
-			{
-				printf("Estados Emitidos: %d", no->cin.registros_emetidos);
-			}
-
-			no = no->prox;
+			imprimir_cins_idade(estados[i].tabela[j].prox, anoInicial, anoFinal);
 		}
+		printf("]\n");
 	}
 }
 
-void relatorio_porEstado(No lista_registro[])
-{
-	No *no;
-	int i, j, estado = 0;
-
-	while (estado <= 25)
-	{
-		for (i = 0; i < TAM; i++)
-		{
-			no = lista_registro[i].prox;
-			while (no)
-			{
-				imprimir_registros_estado(lista_registro,"sp");
-				no = no->prox;
-			}
-		}
-		estado++;
-	}
-}
-
-void * imprimir_registros_(No *lista)
-{
-	No *no = lista->prox;
-	if (no)
-	{
-		printf("----------------\n");
-		while (no != NULL)
-		{
-			printf("\"nome\": \"%s\",\n\"cpf\": \"%ld\",\n\"rg\": \"%d\",\n\"data_nasc\": \"%d/%d/%d\",\n\"naturalidade\":{\n\t\"cidade\": \"%s\",\n\"estado\": \"%s\";\n}\n",
-				no->cin.nome,
-				no->cin.registro,
-				no->cin.Naturalidade[0].rg,
-				no->cin.data[0],
-				no->cin.data[1],
-				no->cin.data[2],
-				no->cin.Naturalidade[0].cidade,
-				no->cin.Naturalidade[0].estado);
-
-			no = no->prox;
-		}
-		printf("\n\n");
-	}
-}
-
-void * imprimir_registros_estado(No *lista, char estado)
-{
-	No *no = lista->prox, *estados = NULL;
-	int j;
-	if (no)
-	{
-		printf("----------------\n");
-		while (no != NULL)
-		{
-			j = 0;
-			while(j < no->cin.registros_emetidos){
-				if(strcmp(no->cin.Naturalidade[j].estado, estado) == 0 ){
-					printf("\"nome\": \"%s\",\n\"cpf\": \"%ld\",\n\"rg\": \"%d\",\n\"data_nasc\": \"%d/%d/%d\",\n\"naturalidade\":{\n\t\"cidade\": \"%d\",\n\"estado\": \"%d\";\n}\n",
-						no->cin.nome,
-						no->cin.registro,
-						no->cin.Naturalidade[j].rg,
-						no->cin.data[0],
-						no->cin.data[1],
-						no->cin.data[2],
-						no->cin.Naturalidade[j].cidade,
-						no->cin.Naturalidade[j].estado);
-				}
-			}
-			no = no->prox;
-		}
-		printf("\n\n");
-	}
-}
-
-
-void imprimir_tabela(No tabela[])
-{
-	int i;
-
-	for (i = 0; i < TAM; i++)
-	{
-		imprimir_registros(&tabela[i]);
-	}
-}
-
-void finaliza_lista(No lista)
+// Deletar uma lista
+void deleta_lista(No *lista)
 {
 	No *aux, *remove;
 
-	aux = lista.prox;
+	aux = lista->prox;
 	while (aux)
 	{
 		remove = aux;
 		aux = aux->prox;
 		free(remove);
 	}
-	lista.prox = NULL;
+	lista->prox = NULL;
 }
 
+// Deletar a tabela hash
 void deleta_tabela(No tabela[])
 {
 	int i;
 
 	for (i = 0; i < TAM; i++)
 	{
-		finaliza_lista(tabela[i]);
+		deleta_lista(&tabela[i]);
+	}
+}
+
+// Deletar os estados
+void deleta_estados(Estado estados[])
+{
+	int i;
+
+	for (i = 0; i < 27; i++)
+	{
+		deleta_tabela(estados[i].tabela);
 	}
 }
