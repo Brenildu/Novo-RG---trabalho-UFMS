@@ -158,7 +158,8 @@ Estado *criar_estado()
 }
 
 /*Inserção para a busca de cin*/
-void inserir_ordenado(No *lista, No *novo){
+void inserir_ordenado(No *lista, No *novo)
+{
 	No *aux;
 
 	if (lista == NULL || novo->cin.registro == lista->cin.registro)
@@ -169,14 +170,13 @@ void inserir_ordenado(No *lista, No *novo){
 	else
 	{
 		aux = lista->prox;
-		while (aux != NULL && novo->cin.registro == lista->cin.registro > 0)
+		while (aux != NULL && novo->cin.registro > lista->cin.registro)
 		{
 			aux = aux->prox;
 		}
 		novo->prox = aux;
 		aux = novo;
 	}
-
 }
 
 // Inserir na lista em ordem alfabética
@@ -237,7 +237,7 @@ void insere_estado(Estado estados[], No *novo, const char *sigla)
 }
 
 // Remover da tabela de CIN
-long remover_cin(No tabela[], Estado estados[],long registro)
+long remover_cin(No tabela[], Estado estados[], long registro)
 {
 	No *p = tabela->prox;
 	No *no_removido = NULL;
@@ -253,8 +253,11 @@ long remover_cin(No tabela[], Estado estados[],long registro)
 
 		remover_cin_estado(estados, no_removido);
 		free(no_removido);
-	}else{
-		if(p == tabela->prox){
+	}
+	else
+	{
+		if (p == tabela->prox)
+		{
 			no_removido = tabela->prox;
 			tabela->prox = no_removido->prox;
 			reg_removido = no_removido->cin.registro;
@@ -273,27 +276,28 @@ void remover_cin_estado(Estado estados[], No *no_removido)
 	int i, valor_sigla;
 	No *p;
 
-	if(no_removido != NULL){
-		for(i = 0; i < no_removido->cin.num_registros_emetidos; i++){
-			valor_sigla = valor_estado(no_removido->cin.registros_emetidos[i].estado);
-			p = busca_cin(estados[valor_sigla].tabela, no_removido->cin.registro);
+	if (no_removido != NULL)
+	{
+		valor_sigla = valor_estado(no_removido->cin.registros_emetidos[0].estado);
+		p = busca_cin(estados[valor_sigla].tabela, no_removido->cin.registro);
 
-			if (p && p->prox->cin.registro == no_removido->cin.registro)
+		if (p && p->prox->cin.registro == no_removido->cin.registro)
+		{
+			no_removido = p->prox;
+			p->prox = no_removido->prox;
+			free(no_removido);
+		}
+		else
+		{
+			if (p == estados[i].tabela->prox)
 			{
-				no_removido = p->prox;
-				p->prox = no_removido->prox;
+				no_removido = estados[i].tabela->prox;
+				estados[i].tabela->prox = no_removido->prox;
 				free(no_removido);
-			}else{
-				if(p == estados[i].tabela->prox){
-					no_removido = estados[i].tabela->prox;
-					estados[i].tabela->prox = no_removido->prox;
-					free(no_removido);
-				}
 			}
 		}
 	}
 }
-
 
 // Imprimir os cidadaos com certa idade
 void imprimir_cins_idade(No *lista, int anoInicial, int anoFinal)
@@ -317,18 +321,18 @@ void imprimir_cin(CIN cin)
 	printf("\"nome\": \"%s\",\n\"cpf\": \"%ld\",\n\"rg\": \"%d\",\n\"data_nasc\": \"%d/%d/%d\",\n\"naturalidade\":{\n\t\"cidade\": \"%s\",\n\t\"estado\": \"%s\"\n}\n",
 		   cin.nome,
 		   cin.registro,
-		   cin.Naturalidade.rg,
+		   cin.registros_emetidos[0].rg,
 		   cin.data[0],
 		   cin.data[1],
 		   cin.data[2],
-		   cin.Naturalidade.cidade,
-		   cin.Naturalidade.estado);
+		   cin.registros_emetidos[0].cidade,
+		   cin.registros_emetidos[0].estado);
 }
 
 /*Relatorio faixa etária divido por estados*/
 void relatorio(Estado estados[], int anoInicial, int anoFinal)
 {
-	int i, j;
+	int i, j, k, num_reg, posicao_reg = 0;
 
 	for (i = 0; i < 27; i++)
 	{

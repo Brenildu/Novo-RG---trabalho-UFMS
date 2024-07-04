@@ -1,9 +1,9 @@
 #ifndef ARVOREBINARIA_H
 #define ARVOREBINARIA_H
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef struct
 {
@@ -16,17 +16,15 @@ typedef struct
 {
 	char nome[70];
 	int data[3];
-	Naturalidade Naturalidade;
 	long registro;
-	Naturalidade registros_emetidos[26];
-
+	Naturalidade registros_emetidos[27];
 } CIN;
 
 typedef struct Node
 {
 	CIN cin;
 	struct Node *dir;
-    struct Node *esq;
+	struct Node *esq;
 } Node;
 
 typedef struct Estado
@@ -36,7 +34,6 @@ typedef struct Estado
 	struct Estado *dir;
 	struct Estado *esq;
 } Estado;
-
 
 Node *novo_node(CIN cin);
 
@@ -48,28 +45,26 @@ Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior);
 
 Estado *popular_estados();
 
+Node *busca_cin(Node *raiz, long registro, Node *anterior);
+
+Node *busca_nome(Node *raiz, const char *nome, Node *anterior);
+
 void inserir_cin(Node **node, CIN cin);
 
-void insere_nome(Node **node ,CIN cin);
+void inserir_nome(Estado *estados, CIN cin);
 
-Node* maior_ValorEsq(Node* no);
+Node *maior_ValorEsq(Node *no);
 
-Node* remover_cin(Node* raiz, long registro);
+long remover_cin(Node **raiz, Estado *estados, long registro);
 
-Node *busca_registro(Node *binary_tree, long registro);
+void remover_cin_estado(Estado *estados, Node *no_removido);
 
-Node* procurar_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, const long *registro);
+void imprimir_cins_idade(Node *arvore, int anoInicial, int anoFinal);
 
-Node* busca_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro);
+void imprimir_cin(CIN cin);
 
-void imprimir_cins(Node *binary_tree);
+void relatorio(Estado *estados, int anoInicial, int anoFinal);
 
-void exclui_arvore(Node *binary_tree);
-
-void relatorio_anos(Node *raiz, int anoInicial, int anoFinal);
-
-void relatorio_intervaloAnos(Node *raizAntigoPadrao, Node *raizNovoPadrao, int anoInicial, int anoFinal);
-
-void relatorio_porEstado(Node *raizAntigoPadrao, Node *raizNovoPadrao, char estado[3]);
+void deleta_arvore(Node *arvore);
 
 #endif

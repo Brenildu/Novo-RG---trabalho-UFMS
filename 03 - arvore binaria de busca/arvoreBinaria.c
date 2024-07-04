@@ -16,10 +16,12 @@ Node *novo_node(CIN cin)
 	return NULL;
 }
 
-Estado *novo_estado(int valor_sigla){
+Estado *novo_estado(int valor_sigla)
+{
 	Estado *novo_estado = (Estado *)malloc(sizeof(Estado));
 
-	if(novo_estado){
+	if (novo_estado)
+	{
 		novo_estado->node = NULL;
 		novo_estado->dir = NULL;
 		novo_estado->esq = NULL;
@@ -49,304 +51,271 @@ int valor_estado(const char *sigla)
 	return -1;
 }
 
-Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior){
-	if(estado == NULL){
+Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior)
+{
+	if (estado == NULL)
+	{
 		return anterior;
 	}
 
-	if(estado->sigla == valor_sigla)
+	if (estado->sigla == valor_sigla)
 		return estado;
-	else if(valor_sigla > estado->sigla )
+	else if (valor_sigla > estado->sigla)
 		return busca_estado(estado->dir, valor_sigla, estado);
 	else
 		return busca_estado(estado->esq, valor_sigla, estado);
 }
 
-Estado *popular_estados(){
+Estado *popular_estados()
+{
 	int i;
 	Estado *raiz, *novo, *aux;
-	raiz = novo_estado(13); 
+	raiz = novo_estado(13);
 
-	if(raiz){
-		for(i = 14; i < 27; i = i+2){
-			aux = busca_estado(raiz, i, raiz);
-			if(aux != NULL){
-				novo = novo_estado(i);
-				if(novo->sigla > aux->sigla)
-					aux->dir = novo;
-			}else{
-				return NULL;
-			}
-		}
-
-		for(i = 15; i < 27; i = i+2){
-			aux = busca_estado(raiz, i, raiz);
-			if(aux != NULL){
-				novo = novo_estado(i);
-				if(novo->sigla > aux->sigla)
-					aux->dir = novo;
-			}else{
-				return NULL;
-			}
-		}
-
-		for(i = 0; i < 13; i = i+2){
-			aux = busca_estado(raiz, i, raiz);
-			if(aux != NULL){
-				novo = novo_estado(i);
-				if(novo->sigla > aux->sigla)
-					aux->dir = novo;
-			}else{
-				return NULL;
-			}
-		}
-
-		for(i = 1; i < 13; i = i+2){
-			aux = busca_estado(raiz, i, raiz);
-			if(aux != NULL){
-				novo = novo_estado(i);
-				if(novo->sigla > aux->sigla)
-					aux->dir = novo;
-			}else{
-				return NULL;
-			}
-		}
-	}
-}
-
-
-void inserir_cin(Node **node, CIN cin)
-{
-	Node *novo, *p;
-
-	p = *node;
-	novo = novo_node(cin);
-	if (p == NULL)
+	if (raiz)
 	{
-		if (novo)
-			*node = novo;
-		else
-			printf("Falha ao tentar alocar memória para o registro: %ld\n", cin.registro);
-
-	}
-	else if (cin.registro < p->cin.registro)
-	{
-		inserir_cin(p->esq, cin);
-	}
-	else if (cin.registro > p->cin.registro)
-	{
-		inserir_cin(p->dir, cin);
-	} else{
-		free(novo);
-	}
-}
-
-void insere_nome_ordem_alfabetica(Node **node ,CIN cin){
-	Node *novo, *p;
-
-	p = *node;
-	novo = novo_node(cin);
-	if (p == NULL)
-	{
-		if (novo)
-			*node = novo;
-		else
-			printf("Falha ao tentar alocar memória para o registro: %ld\n", cin.registro);
-
-	}
-	else if (strcmp(cin.nome, p->cin.nome) < 0)
-	{
-		insere_nome(p->esq, cin);
-	}
-	else if (strcmp(cin.nome, p->cin.nome) > 0)
-	{
-		insere_nome(p->dir, cin);
-	} else{
-		if(cin.registro != p->cin.registro){
-			insere_nome(p->esq, cin);
-		}else{
-			free(novo);
-		}
-	}
-
-}
-
-void insere_nome_estados(Estado *estados, Node *node, CIN cin, int valor_sigla){
-
-}
-
-Node *maior_ValorEsq(Node *no)
-{
-	Node *maior = no;
-
-	while (maior && maior->esq != NULL)
-		maior = maior->esq;
-
-	return maior;
-}
-
-Node *remover_cin(Node *raiz, long registro)
-{
-	Node *temp;
-
-	if (raiz == NULL)
-		return raiz;
-
-	if (registro < raiz->cin.registro)
-		raiz->esq = remover_cin(raiz->esq, registro);
-
-	else if (registro > raiz->cin.registro)
-		raiz->dir = remover_cin(raiz->dir, registro);
-
-	else
-	{
-		if (raiz->esq == NULL)
+		for (i = 14; i < 27; i = i + 2)
 		{
-			temp = raiz->esq;
-			free(raiz);
-			return temp;
-		}
-		else if (raiz->dir == NULL)
-		{
-			temp = raiz->dir;
-			free(raiz);
-			return temp;
+			aux = busca_estado(raiz, i, NULL);
+			if (aux != NULL)
+			{
+				novo = novo_estado(i);
+				if (novo->sigla > aux->sigla)
+					aux->dir = novo;
+				else
+					aux->esq = novo;
+			}
+			else
+			{
+				return NULL;
+			}
 		}
 
-		temp = maior_ValorEsq(raiz->esq);
-		raiz->cin = temp->cin;
-		raiz->esq = remover_cin(raiz->esq, temp->cin.registro);
+		for (i = 15; i < 27; i = i + 2)
+		{
+			aux = busca_estado(raiz, i, NULL);
+			if (aux != NULL)
+			{
+				novo = novo_estado(i);
+				if (novo->sigla > aux->sigla)
+					aux->dir = novo;
+				else
+					aux->esq = novo;
+			}
+			else
+			{
+				return NULL;
+			}
+		}
+
+		for (i = 0; i < 13; i = i + 2)
+		{
+			aux = busca_estado(raiz, i, NULL);
+			if (aux != NULL)
+			{
+				novo = novo_estado(i);
+				if (novo->sigla > aux->sigla)
+					aux->dir = novo;
+				else
+					aux->esq = novo;
+			}
+			else
+			{
+				return NULL;
+			}
+		}
+
+		for (i = 1; i < 13; i = i + 2)
+		{
+			aux = busca_estado(raiz, i, NULL);
+			if (aux != NULL)
+			{
+				novo = novo_estado(i);
+				if (novo->sigla > aux->sigla)
+					aux->dir = novo;
+				else
+					aux->esq = novo;
+			}
+			else
+			{
+				return NULL;
+			}
+		}
 	}
 	return raiz;
 }
 
-Node *busca_registro(Node *arvore, long registro)
+Node *busca_cin(Node *raiz, long registro, Node *anterior)
 {
-	if (!arvore)
-	{
-		return NULL;
-	}
+	if (raiz == NULL)
+		return anterior;
 
-	if (registro == arvore->cin.registro)
-	{
-		return arvore;
-	}
-	else if (registro < arvore->cin.registro)
-	{
-		return busca_registro(arvore->esq, registro);
-	}
-	else if (registro > arvore->cin.registro)
-	{
-		return busca_registro(arvore->dir, registro);
-	}
-	return NULL;
+	if (raiz->cin.registro == registro)
+		return raiz;
+
+	if (registro > raiz->cin.registro)
+		return busca_cin(raiz->dir, registro, raiz);
+	else
+		return busca_cin(raiz->esq, registro, raiz);
 }
 
-Node *procurar_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, const long *registro)
+Node *busca_nome(Node *raiz, const char *nome, Node *anterior)
 {
-	Node *no = NULL;
+	if (raiz == NULL)
+		return anterior;
 
-	if (0)
+	if (strcmp(raiz->cin.nome, nome) == 0)
+		return raiz;
+
+	if (strcmp(nome, raiz->cin.nome) > 0)
+		return busca_nome(raiz->dir, nome, raiz);
+	else
+		return busca_nome(raiz->esq, nome, raiz);
+}
+
+void inserir_cin(Node **node, CIN cin)
+{
+	if (*node == NULL)
 	{
-		no = busca_registro(raizNovoPadrao, *registro);
+		*node = novo_node(cin);
+		if (*node == NULL)
+		{
+			printf("Falha ao tentar alocar memória para o registro: %ld\n", cin.registro);
+		}
+	}
+	else if (cin.registro < (*node)->cin.registro)
+	{
+		inserir_cin(&((*node)->esq), cin);
+	}
+	else if (cin.registro > (*node)->cin.registro)
+	{
+		inserir_cin(&((*node)->dir), cin);
+	}
+}
+
+void inserir_nome(Estado *estados, CIN cin)
+{
+	int valor_sigla = valor_estado(cin.registros_emetidos[0].estado);
+	Estado *estado = busca_estado(estados, valor_sigla, NULL);
+
+	if (estado == NULL)
+	{
+		printf("Estado não encontrado para o registro: %ld\n", cin.registro);
+		return;
+	}
+
+	inserir_cin(&(estado->node), cin);
+}
+
+Node *maior_ValorEsq(Node *no)
+{
+	Node *maior = no->esq;
+
+	while (maior && maior->dir != NULL)
+		maior = maior->dir;
+
+	return maior;
+}
+
+long remover_cin(Node **raiz, Estado *estados, long registro)
+{
+	Node *p = *raiz, *no_removido = NULL, *maior;
+	long reg_removido = -1;
+
+	if (p == NULL)
+		return reg_removido;
+
+	if (registro < p->cin.registro)
+	{
+		reg_removido = remover_cin(&(p->esq), estados, registro);
+	}
+	else if (registro > p->cin.registro)
+	{
+		reg_removido = remover_cin(&(p->dir), estados, registro);
 	}
 	else
 	{
-		no = busca_registro(raizAntigoPadrao, *registro);
-		if (no == NULL)
+		no_removido = p;
+		if (p->esq == NULL)
 		{
-			no = busca_registro(raizNovoPadrao, *registro);
+			*raiz = p->dir;
 		}
-	}
-
-	return no;
-}
-
-Node *busca_cin(Node *raizAntigoPadrao, Node *raizNovoPadrao, long registro)
-{
-	Node *no = NULL;
-
-	if (0)
-	{
-		no = busca_registro(raizNovoPadrao, registro);
-	}
-	else
-	{
-		no = busca_registro(raizAntigoPadrao, registro);
-		if (no == NULL)
+		else if (p->dir == NULL)
 		{
-			no = busca_registro(raizNovoPadrao, registro);
-			if (no)
-			{
-				printf("registro encontrada, ele ja foi atualizado para o novo padrão!\n");
-			}
+			*raiz = p->esq;
 		}
+		else
+		{
+			maior = maior_ValorEsq(p);
+			p->cin = maior->cin;
+			reg_removido = remover_cin(&(p->esq), estados, maior->cin.registro);
+			return reg_removido;
+		}
+		reg_removido = no_removido->cin.registro;
+		free(no_removido);
 	}
-
-	return no;
+	return reg_removido;
 }
 
-void relatorio_anos(Node *raiz, int anoInicial, int anoFinal)
+void remover_cin_estado(Estado *estados, Node *no_removido)
 {
+	int valor_sigla = valor_estado(no_removido->cin.registros_emetidos[0].estado);
+	Estado *estado = busca_estado(estados, valor_sigla, NULL);
 
-	if (raiz)
-		relatorio_anos(raiz->esq, anoInicial, anoFinal);
-
-	if (raiz->cin.data[2] >= anoInicial && raiz->cin.data[2] <= anoFinal)
+	if (estado == NULL)
 	{
-		printf("%s;%s;%s;%d;%d;%d;%d;%ld;\n",
-			   raiz->cin.nome,
-			   raiz->cin.Naturalidade->cidade,
-			   raiz->cin.Naturalidade->estado,
-			   raiz->cin.Naturalidade->rg,
-			   raiz->cin.data[0],
-			   raiz->cin.data[1],
-			   raiz->cin.data[2],
-			   raiz->cin.registro);
+		printf("Estado não encontrado para o registro: %ld\n", no_removido->cin.registro);
+		return;
 	}
 
-	if (raiz)
-		relatorio_anos(raiz->dir, anoInicial, anoFinal);
+	long registro = no_removido->cin.registro;
+	remover_cin(&(estado->node), estados, registro);
 }
 
-void relatorio_intervaloAnos(Node *raizAntigoPadrao, Node *raizNovoPadrao, int anoInicial, int anoFinal)
+void imprimir_cins_idade(Node *arvore, int anoInicial, int anoFinal)
 {
-	relatorio_anos(raizAntigoPadrao, anoInicial, anoFinal);
+	if (arvore == NULL)
+		return;
 
-	relatorio_anos(raizNovoPadrao, anoInicial, anoFinal);
-}
+	imprimir_cins_idade(arvore->esq, anoInicial, anoFinal);
 
-void relatorio_porEstado(Node *rootAntigoPadrao, Node *rootNovoPadrao, char estado[3])
-{
-}
-
-void imprimir_cins(Node *arvore)
-{
-	if (arvore)
+	if (arvore->cin.data[2] >= anoInicial && arvore->cin.data[2] <= anoFinal)
 	{
-		imprimir_cins(arvore->esq);
-		printf("%s;%s;%s;%d;%d;%d;%d;%ld;\n",
-			   arvore->cin.nome,
-			   arvore->cin.Naturalidade->cidade,
-			   arvore->cin.Naturalidade->estado,
-			   arvore->cin.Naturalidade->rg,
-			   arvore->cin.data[0],
-			   arvore->cin.data[1],
-			   arvore->cin.data[2],
-			   arvore->cin.registro);
-		imprimir_cins(arvore->dir);
+		imprimir_cin(arvore->cin);
 	}
+
+	imprimir_cins_idade(arvore->dir, anoInicial, anoFinal);
+}
+
+void imprimir_cin(CIN cin)
+{
+	printf("\"nome\": \"%s\",\n\"cpf\": \"%ld\",\n\"rg\": \"%d\",\n\"data_nasc\": \"%d/%d/%d\",\n\"naturalidade\":{\n\t\"cidade\": \"%s\",\n\t\"estado\": \"%s\"\n}\n",
+		   cin.nome,
+		   cin.registro,
+		   cin.registros_emetidos[0].rg,
+		   cin.data[0],
+		   cin.data[1],
+		   cin.data[2],
+		   cin.registros_emetidos[0].cidade,
+		   cin.registros_emetidos[0].estado);
+}
+
+void relatorio(Estado *estados, int anoInicial, int anoFinal)
+{
+	if (estados == NULL)
+		return;
+
+	relatorio(estados->esq, anoInicial, anoFinal);
+	imprimir_cins_idade(estados->node, anoInicial, anoFinal);
+	relatorio(estados->dir, anoInicial, anoFinal);
 }
 
 void deleta_arvore(Node *arvore)
 {
 	if (arvore)
 	{
-		if (arvore->esq)
-			deleta_arvore(arvore->esq);
-		if (arvore->dir)
-			deleta_arvore(arvore->dir);
-
+		deleta_arvore(arvore->esq);
+		deleta_arvore(arvore->dir);
 		free(arvore);
 	}
 }

@@ -20,11 +20,8 @@ typedef struct
 {
 	char nome[70];
 	int data[3];
-	Naturalidade Naturalidade;
 	long registro;
-	Naturalidade registros_emetidos[26];
-	int num_registros_emetidos;
-
+	Naturalidade registros_emetidos[27];
 } CIN;
 
 typedef struct No
@@ -64,7 +61,7 @@ void insere_tabela(No tabela[], No *novo);
 
 void insere_estado(Estado estados[], No *novo, const char *sigla);
 
-long remover_cin(No tabela[], Estado estados[],long registro);
+long remover_cin(No tabela[], Estado estados[], long registro);
 
 void remover_cin_estado(Estado estados[], No *no_removido);
 
