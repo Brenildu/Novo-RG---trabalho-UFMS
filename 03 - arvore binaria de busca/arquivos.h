@@ -8,12 +8,12 @@ char *readFile(const char *filename);
 
 void parseDate(const char *str, int data[3]);
 
-void addCIN(CIN **lst, CIN pessoa);
+void addCIN(Estado *estados, Node **cpfTree, CIN pessoa);
 
-CIN *parseJSON(const char *filename, CIN *lst);
+void parseJSON(const char *filename, Estado *estados, Node **cpfTree);
 
-void salvarDadosTxt(CIN *lst, const char *filename);
+void salvarDadosTxt(Node *cpfTree, Estado *estados, const char *filename);
 
-CIN *carregarDadosTxt(const char *filename);
+void carregarDadosTxt(Node **cpfTree, Estado *estados, const char *filename);
 
 #endif

@@ -36,13 +36,13 @@ int main(int argc, char *argv[])
 	popular_estados(estados);
 
 	// Carregar dados existentes
-	carregarDadosTxt(tabela, "dados.txt");
+	carregarDadosTxt(tabela, estados, "dados.txt");
 
 	// Carregar dados dos arquivos JSON passados como argumentos
 	for (int i = 1; i < argc; i++)
 	{
 		printf("Processing file: %s\n", argv[i]);
-		parseJSON(argv[i], tabela);
+		parseJSON(argv[i], tabela, estados);
 	}
 
 	do
@@ -68,45 +68,16 @@ int main(int argc, char *argv[])
 
 		case 2:
 		{
-			cin_novo = menu2();
-			if (cin_novo.registro == 0)
-			{
-				printf("Verifique se digitou certo o cpf, Operacao Invalida!!\n");
-			}
-			else
-			{
-				No *novo = criar_no(cin_novo);
-				if (novo)
-				{
-					insere_tabela(tabela, novo);
-					insere_estado(estados, novo, novo->cin.registros_emetidos[0]);
-				}
-			}
-			break;
-		}
-
-		case 3:
-			cpf = menu3();
-			if (cpf == -1)
-			{
-				printf("Verifique se digitou certo o cpf, Operacao Invalida!!\n");
-			}
-			else
-			{
-				remover_cin(tabela, estados, cpf);
-			}
-			break;
-
-		case 4:
-			menu4(&anoInicio, &anoFim);
+			menu2(&anoInicio, &anoFim);
 
 			startTimer(&tstart);
 			relatorio(estados, anoInicio, anoFim);
 			double elapsed = stopTimer(&tstart, &tend);
 			printf("Tempo de execução: %.3f segundos\n", elapsed / 1e9);
 			break;
+		}
 
-		case 5:
+		case 3:
 			printf("Finalizando programa!!\n");
 			salvarDadosTxt(tabela, "dados.txt");
 			deleta_estados(estados);

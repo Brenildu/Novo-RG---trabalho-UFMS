@@ -1,5 +1,5 @@
-#ifndef ARVORE_AVL_H
-#define ARVORE_AVL_H
+#ifndef ARVOREAVL_H
+#define ARVOREAVL_H
 
 #include <stdio.h>
 #include <stdlib.h>

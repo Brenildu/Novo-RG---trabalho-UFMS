@@ -52,8 +52,19 @@ void addCIN(No tabela[], CIN pessoa)
     insere_tabela(tabela, novo);
 }
 
+void addCIN_estados(Estado estados[], CIN pessoa)
+{
+    No *novo = criar_no(pessoa);
+    if (!novo)
+    {
+        perror("Error allocating memory");
+        return;
+    }
+    insere_estado(estados, novo, novo->cin.registros_emetidos[0].estado);
+}
+
 // Função para analisar um arquivo JSON e inserir os dados na tabela hash
-void parseJSON(const char *filename, No tabela[])
+void parseJSON(const char *filename, No tabela[], Estado estados[])
 {
     char *json_data = readFile(filename);
     if (json_data == NULL)
@@ -138,6 +149,7 @@ void parseJSON(const char *filename, No tabela[])
         }
 
         addCIN(tabela, pessoa);
+        addCIN_estados(estados, pessoa);
     }
 
     json_object_put(parsed_json);
@@ -173,7 +185,7 @@ void salvarDadosTxt(No tabela[], const char *filename)
 }
 
 // Função para carregar dados de um arquivo de texto
-void carregarDadosTxt(No tabela[], const char *filename)
+void carregarDadosTxt(No tabela[], Estado estados[], const char *filename)
 {
     FILE *file = fopen(filename, "r");
     if (file == NULL)
@@ -222,6 +234,7 @@ void carregarDadosTxt(No tabela[], const char *filename)
     if (pessoa.nome[0] != '\0')
     {
         addCIN(tabela, pessoa);
+        addCIN
     }
 
     fclose(file);

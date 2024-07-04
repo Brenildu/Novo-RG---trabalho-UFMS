@@ -79,41 +79,7 @@ int main(int argc, char *argv[])
 			break;
 
 		case 2:
-			cin_novo = menu2();
-			if (cin_novo.registro == 0)
-			{
-				printf("Verifique se digitou certo o CPF, Operação Inválida!\n");
-			}
-			else
-			{
-				inserir_nome(estados, cin_novo);
-				inserir_cin(&cpfTree, cin_novo);
-			}
-			break;
-
-		case 3:
-			cpf = menu3();
-			if (cpf == -1)
-			{
-				printf("Verifique se digitou certo o CPF, Operação Inválida!\n");
-			}
-			else
-			{
-				Node *no_removido = busca_cin(cpfTree, cpf, NULL);
-				if (no_removido != NULL)
-				{
-					remover_cin_estado(estados, no_removido);
-					remover_cin(&cpfTree, NULL, cpf);
-				}
-				else
-				{
-					printf("CPF não encontrado.\n");
-				}
-			}
-			break;
-
-		case 4:
-			menu4(&anoInicio, &anoFim);
+			menu2(&anoInicio, &anoFim);
 
 			startTimer(&tstart);
 			relatorio(estados, anoInicio, anoFim);
@@ -121,11 +87,11 @@ int main(int argc, char *argv[])
 			printf("Tempo de execução: %.3f segundos\n", elapsed / 1e9);
 			break;
 
-		case 5:
+		case 3:
 			printf("Finalizando programa!\n");
 			salvarDadosTxt(cpfTree, estados, "dados.txt");
 			deleta_arvore(cpfTree);
-			deleta_estados(estados);
+			deleta_arvore(estados);
 			break;
 
 		default:

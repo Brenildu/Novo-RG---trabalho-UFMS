@@ -10,10 +10,12 @@ void parseDate(const char *str, int data[3]);
 
 void addCIN(CIN **lst, CIN pessoa);
 
-CIN *parseJSON(const char *filename, CIN *lst);
+void addCIN_estados(Estado estados[], CIN pessoa);
 
-void salvarDadosTxt(CIN *lst, const char *filename);
+void parseJSON(const char *filename, No tabela[], Estado estados[]);
 
-CIN *carregarDadosTxt(const char *filename);
+void salvarDadosTxt(No tabela[], const char *filename);
+
+void carregarDadosTxt(No tabela[], Estado estados[], const char *filename);
 
 #endif
