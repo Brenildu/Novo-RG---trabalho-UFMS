@@ -41,14 +41,13 @@ void parseDate(const char *str, int data[3])
 }
 
 // Função para adicionar um novo CIN na árvore binária de busca
-void addCIN(Estado *estados, Node **cpfTree, CIN pessoa)
+void addCIN(Estado *estados, CIN pessoa)
 {
     inserir_nome(estados, pessoa);
-    inserir_cin(cpfTree, pessoa);
 }
 
-// Função para analisar um arquivo JSON e inserir os dados nas duas árvores binárias
-void parseJSON(const char *filename, Estado *estados, Node **cpfTree)
+// Função para analisar um arquivo JSON e inserir os dados na árvore binária de busca
+void parseJSON(const char *filename, Estado *estados)
 {
     char *json_data = readFile(filename);
     if (json_data == NULL)
@@ -132,7 +131,7 @@ void parseJSON(const char *filename, Estado *estados, Node **cpfTree)
             pessoa.registro = atol(json_object_get_string(cpf));
         }
 
-        addCIN(estados, cpfTree, pessoa);
+        addCIN(estados, pessoa);
     }
 
     json_object_put(parsed_json);
@@ -140,7 +139,7 @@ void parseJSON(const char *filename, Estado *estados, Node **cpfTree)
 }
 
 // Função para salvar dados em um arquivo de texto
-void salvarDadosTxt(Node *cpfTree, Estado *estados, const char *filename)
+void salvarDadosTxt(Estado *estados, const char *filename)
 {
     FILE *file = fopen(filename, "w");
     if (file == NULL)
@@ -183,7 +182,7 @@ void salvarDadosTxt(Node *cpfTree, Estado *estados, const char *filename)
 }
 
 // Função para carregar dados de um arquivo de texto
-void carregarDadosTxt(Node **cpfTree, Estado *estados, const char *filename)
+void carregarDadosTxt(Estado *estados, const char *filename)
 {
     FILE *file = fopen(filename, "r");
     if (file == NULL)
@@ -223,7 +222,7 @@ void carregarDadosTxt(Node **cpfTree, Estado *estados, const char *filename)
         {
             if (pessoa.nome[0] != '\0')
             {
-                addCIN(estados, cpfTree, pessoa);
+                addCIN(estados, pessoa);
                 memset(&pessoa, 0, sizeof(CIN));
             }
         }
@@ -231,7 +230,7 @@ void carregarDadosTxt(Node **cpfTree, Estado *estados, const char *filename)
 
     if (pessoa.nome[0] != '\0')
     {
-        addCIN(estados, cpfTree, pessoa);
+        addCIN(estados, pessoa);
     }
 
     fclose(file);
