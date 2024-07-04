@@ -11,12 +11,19 @@ void popular_hash(No tabela[], int tamanho)
 }
 
 // Preencher os estados com tabelas hash
-void popular_estados(Estado estados[])
+void popular_estados(Estado estados[], No tabela[])
 {
 	int i;
-	for (i = 0; i < 27; i++)
+	No *p, *novo;
+	for (i = 0; i < TAM; i++)
 	{
-		popular_hash(estados[i].tabela, TAM_ALFABETICO);
+		p = tabela[i].prox;
+		while (p != NULL)
+		{
+			novo = criar_no(p->cin);
+			insere_estado(estados, novo, novo->cin.registros_emetidos[0].estado);
+			p = p->prox;
+		}
 	}
 }
 

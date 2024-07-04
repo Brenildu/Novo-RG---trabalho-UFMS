@@ -1,17 +1,19 @@
-
-
-
 #ifndef ARQUIVOS_H
 #define ARQUIVOS_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "hash.h"
+#include <json-c/json.h>
 
-void leituraERGUF(No listaAntigoPadrao[], No listaNovoPadrao[], char *arquivo);
+char *readFile(const char *filename);
 
-No *inverterLista(No **listaOrdenada);
+void parseDate(const char *str, int data[3]);
 
-void gravarERGUF(const char *filename, No *lst);
+void addCIN(CIN **lst, CIN pessoa);
+
+CIN *parseJSON(const char *filename, CIN *lst);
+
+void salvarDadosTxt(CIN *lst, const char *filename);
+
+CIN *carregarDadosTxt(const char *filename);
 
 #endif
