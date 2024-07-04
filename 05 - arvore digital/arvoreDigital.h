@@ -1,5 +1,5 @@
-#ifndef TRIE_H
-#define TRIE_H
+#ifndef ARVOREDIGITAL_H
+#define ARVOREDIGITAL_H
 
 #include <stdio.h>
 #include <stdlib.h>
