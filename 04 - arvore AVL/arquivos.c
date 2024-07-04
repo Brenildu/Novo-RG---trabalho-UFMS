@@ -1,156 +1,233 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include "arvoreAVL.h"
 #include "arquivos.h"
-#include "menu.h"
 
-/*
-Compilação: gcc -o main.exe *.c `pkg-config --cflags --libs gtk+-3.0` -export-dynamic
-*/
-void startTimer(struct timespec *start)
+// Função para ler o conteúdo de um arquivo e retornar como uma string
+char *readFile(const char *filename)
 {
-    clock_gettime(CLOCK_MONOTONIC, start);
-}
-
-double stopTimer(struct timespec *start, struct timespec *end)
-{
-    clock_gettime(CLOCK_MONOTONIC, end);
-    double elapsed = (end->tv_sec - start->tv_sec) * 1e9; // segundos para nanosegundos
-    elapsed += (end->tv_nsec - start->tv_nsec);           // nanosegundos
-    return elapsed;
-}
-
-Node *carregarDadosTxtParaArvoreCPF(Estado *estados, Node *cpfTree, const char *nomeArquivo)
-{
-    FILE *file = fopen(nomeArquivo, "r");
+    FILE *file = fopen(filename, "rb");
     if (file == NULL)
     {
-        perror("Não foi possível abrir o arquivo de dados");
-        return cpfTree;
+        perror("Error opening file");
+        return NULL;
     }
 
-    char linha[256];
-    while (fgets(linha, sizeof(linha), file))
+    fseek(file, 0, SEEK_END);
+    long length = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char *data = (char *)malloc(length + 1);
+    if (data == NULL)
     {
-        CIN cin;
-        // Supondo que a linha está formatada de forma que os dados podem ser lidos assim:
-        sscanf(linha, "%ld %s %s %d", &cin.registro, cin.nome, cin.sobrenome, &cin.anoNascimento);
-        inserir_nome(estados, cin); // Insere nos estados
-        cpfTree = inserir_cin(cpfTree, cin); // Insere na árvore de CPFs
+        perror("Error allocating memory");
+        fclose(file);
+        return NULL;
+    }
+
+    fread(data, 1, length, file);
+    data[length] = '\0';
+
+    fclose(file);
+    return data;
+}
+
+// Função para converter uma string de data no formato "dd/mm/aaaa" para um array de inteiros
+void parseDate(const char *str, int data[3])
+{
+    sscanf(str, "%d/%d/%d", &data[0], &data[1], &data[2]);
+}
+
+// Função para adicionar um novo CIN na árvore binária de busca
+void addCIN(Estado *estados, Node **cpfTree, CIN pessoa)
+{
+    inserir_nome(estados, pessoa);
+    inserir_cin(cpfTree, pessoa);
+}
+
+// Função para analisar um arquivo JSON e inserir os dados nas duas árvores binárias
+void parseJSON(const char *filename, Estado *estados, Node **cpfTree)
+{
+    char *json_data = readFile(filename);
+    if (json_data == NULL)
+    {
+        return;
+    }
+
+    struct json_object *parsed_json = json_tokener_parse(json_data);
+    if (parsed_json == NULL)
+    {
+        fprintf(stderr, "Error parsing JSON data\n");
+        free(json_data);
+        return;
+    }
+
+    struct json_object *estado;
+    struct json_object *cidadaos;
+
+    if (!json_object_object_get_ex(parsed_json, "uf", &estado))
+    {
+        fprintf(stderr, "Error: missing 'uf' field\n");
+        json_object_put(parsed_json);
+        free(json_data);
+        return;
+    }
+
+    if (!json_object_object_get_ex(parsed_json, "cidadaos", &cidadaos) || !json_object_is_type(cidadaos, json_type_array))
+    {
+        fprintf(stderr, "Error: 'cidadaos' is not an array\n");
+        json_object_put(parsed_json);
+        free(json_data);
+        return;
+    }
+
+    for (size_t i = 0; i < json_object_array_length(cidadaos); i++)
+    {
+        struct json_object *cidadao = json_object_array_get_idx(cidadaos, i);
+        CIN pessoa;
+
+        struct json_object *nome, *data_nasc, *rg, *naturalidade, *cidade, *estado_nat, *cpf;
+
+        json_object_object_get_ex(cidadao, "nome", &nome);
+        json_object_object_get_ex(cidadao, "data_nasc", &data_nasc);
+        json_object_object_get_ex(cidadao, "rg", &rg);
+        json_object_object_get_ex(cidadao, "naturalidade", &naturalidade);
+        json_object_object_get_ex(cidadao, "cpf", &cpf);
+
+        json_object_object_get_ex(naturalidade, "cidade", &cidade);
+        json_object_object_get_ex(naturalidade, "estado", &estado_nat);
+
+        if (nome && json_object_is_type(nome, json_type_string))
+        {
+            strncpy(pessoa.nome, json_object_get_string(nome), sizeof(pessoa.nome) - 1);
+            pessoa.nome[sizeof(pessoa.nome) - 1] = '\0';
+        }
+
+        if (data_nasc && json_object_is_type(data_nasc, json_type_string))
+        {
+            parseDate(json_object_get_string(data_nasc), pessoa.data);
+        }
+
+        if (rg && json_object_is_type(rg, json_type_int))
+        {
+            pessoa.registros_emetidos[0].rg = json_object_get_int(rg);
+        }
+
+        if (cidade && json_object_is_type(cidade, json_type_string))
+        {
+            strncpy(pessoa.registros_emetidos[0].cidade, json_object_get_string(cidade), sizeof(pessoa.registros_emetidos[0].cidade) - 1);
+            pessoa.registros_emetidos[0].cidade[sizeof(pessoa.registros_emetidos[0].cidade) - 1] = '\0';
+        }
+
+        if (estado_nat && json_object_is_type(estado_nat, json_type_string))
+        {
+            strncpy(pessoa.registros_emetidos[0].estado, json_object_get_string(estado_nat), sizeof(pessoa.registros_emetidos[0].estado) - 1);
+            pessoa.registros_emetidos[0].estado[sizeof(pessoa.registros_emetidos[0].estado) - 1] = '\0';
+        }
+
+        if (cpf && json_object_is_type(cpf, json_type_string))
+        {
+            pessoa.registro = atol(json_object_get_string(cpf));
+        }
+
+        addCIN(estados, cpfTree, pessoa);
+    }
+
+    json_object_put(parsed_json);
+    free(json_data);
+}
+
+// Função para salvar dados em um arquivo de texto
+void salvarDadosTxt(Node *cpfTree, Estado *estados, const char *filename)
+{
+    FILE *file = fopen(filename, "w");
+    if (file == NULL)
+    {
+        perror("Error opening file");
+        return;
+    }
+
+    // Função para salvar cada nó em um arquivo
+    void salvarNodeTxt(Node * arvore, FILE * file)
+    {
+        if (arvore == NULL)
+            return;
+
+        fprintf(file, "Num Registro: %ld\n", arvore->cin.registro);
+        fprintf(file, "Nome: %s\n", arvore->cin.nome);
+        fprintf(file, "Data de Nascimento: %d/%d/%d\n", arvore->cin.data[0], arvore->cin.data[1], arvore->cin.data[2]);
+        fprintf(file, "Naturalidade: %s, %s\n", arvore->cin.registros_emetidos[0].cidade, arvore->cin.registros_emetidos[0].estado);
+        fprintf(file, "RG: %d\n", arvore->cin.registros_emetidos[0].rg);
+        fprintf(file, "\n");
+
+        salvarNodeTxt(arvore->esq, file);
+        salvarNodeTxt(arvore->dir, file);
+    }
+
+    // Função para salvar cada estado em um arquivo
+    void salvarEstadoTxt(Estado * estados, FILE * file)
+    {
+        if (estados == NULL)
+            return;
+
+        salvarNodeTxt(estados->node, file);
+        salvarEstadoTxt(estados->esq, file);
+        salvarEstadoTxt(estados->dir, file);
+    }
+
+    salvarEstadoTxt(estados, file);
+
+    fclose(file);
+}
+
+// Função para carregar dados de um arquivo de texto
+void carregarDadosTxt(Node **cpfTree, Estado *estados, const char *filename)
+{
+    FILE *file = fopen(filename, "r");
+    if (file == NULL)
+    {
+        perror("Error opening file");
+        return;
+    }
+
+    CIN pessoa;
+    memset(&pessoa, 0, sizeof(CIN));
+    char line[1024];
+
+    while (fgets(line, sizeof(line), file) != NULL)
+    {
+        if (strncmp(line, "Num Registro: ", 14) == 0)
+        {
+            sscanf(line, "Num Registro: %ld", &pessoa.registro);
+        }
+        else if (strncmp(line, "Nome: ", 6) == 0)
+        {
+            sscanf(line, "Nome: %[^\n]", pessoa.nome);
+        }
+        else if (strncmp(line, "Data de Nascimento: ", 20) == 0)
+        {
+            sscanf(line, "Data de Nascimento: %d/%d/%d", &pessoa.data[0], &pessoa.data[1], &pessoa.data[2]);
+        }
+        else if (strncmp(line, "Naturalidade: ", 14) == 0)
+        {
+            sscanf(line, "Naturalidade: %[^,], %s", pessoa.registros_emetidos[0].cidade, pessoa.registros_emetidos[0].estado);
+        }
+        else if (strncmp(line, "RG: ", 4) == 0)
+        {
+            sscanf(line, "RG: %d", &pessoa.registros_emetidos[0].rg);
+        }
+
+        if (line[0] == '\n' || line[0] == '\r')
+        {
+            if (pessoa.nome[0] != '\0')
+            {
+                addCIN(estados, cpfTree, pessoa);
+                memset(&pessoa, 0, sizeof(CIN));
+            }
+        }
+    }
+
+    if (pessoa.nome[0] != '\0')
+    {
+        addCIN(estados, cpfTree, pessoa);
     }
 
     fclose(file);
-    return cpfTree;
-}
-
-int main(int argc, char *argv[])
-{
-    struct timespec tstart = {0, 0}, tend = {0, 0};
-
-    int op, anoInicio, anoFim;
-    long cpf;
-    Estado *estados = popular_estados();
-    Node *cpfTree = NULL; // Árvore AVL para CPFs
-    CIN cin_novo;
-
-    // Carregar dados existentes
-    cpfTree = carregarDadosTxtParaArvoreCPF(estados, cpfTree, "dados.txt");
-
-    // Carregar dados dos arquivos JSON passados como argumentos
-    for (int i = 1; i < argc; i++)
-    {
-        printf("Processing file: %s\n", argv[i]);
-        parseJSON(argv[i], estados);
-    }
-
-    do
-    {
-        op = menu();
-
-        switch (op)
-        {
-        case 1:
-            cpf = menu1();
-            if (cpf == -1)
-            {
-                printf("Verifique se digitou certo o cpf, Operacao Invalida!!\n");
-            }
-            else
-            {
-                startTimer(&tstart);
-                Node *result = busca_cin(cpfTree, cpf, NULL);
-                double elapsed = stopTimer(&tstart, &tend);
-                printf("Tempo de execução: %.3f segundos\n", elapsed / 1e9);
-                if (result != NULL)
-                {
-                    imprimir_cin(result->cin);
-                }
-                else
-                {
-                    printf("CPF não encontrado.\n");
-                }
-            }
-            break;
-
-        case 2:
-        {
-            cin_novo = menu2();
-            if (cin_novo.registro == 0)
-            {
-                printf("Verifique se digitou certo o cpf, Operacao Invalida!!\n");
-            }
-            else
-            {
-                inserir_nome(estados, cin_novo);
-                cpfTree = inserir_cin(cpfTree, cin_novo); // Inserir na árvore AVL
-            }
-            break;
-        }
-
-        case 3:
-            cpf = menu3();
-            if (cpf == -1)
-            {
-                printf("Verifique se digitou certo o cpf, Operacao Invalida!!\n");
-            }
-            else
-            {
-                Node *no_removido = busca_cin(cpfTree, cpf, NULL);
-                if (no_removido != NULL)
-                {
-                    remover_cin_estado(estados, no_removido);
-                    cpfTree = remover_cin(cpfTree, cpf); // Remover da árvore AVL
-                }
-                else
-                {
-                    printf("CPF não encontrado.\n");
-                }
-            }
-            break;
-
-        case 4:
-            menu4(&anoInicio, &anoFim);
-
-            startTimer(&tstart);
-            relatorio(estados, anoInicio, anoFim);
-            double elapsed = stopTimer(&tstart, &tend);
-            printf("Tempo de execução: %.3f segundos\n", elapsed / 1e9);
-            break;
-
-        case 5:
-            printf("Finalizando programa!!\n");
-            salvarDadosTxt(estados, "dados.txt");
-            deleta_arvore(estados);
-            deleta_arvore(cpfTree);
-            break;
-
-        default:
-            printf("Verifique se digitou corretamente, Operacao Invalida!!\n");
-            break;
-        }
-    } while (op != 5);
-
-    return 0;
 }
