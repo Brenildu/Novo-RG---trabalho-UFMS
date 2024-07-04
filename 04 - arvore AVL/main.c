@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "arvoreBinaria.h"
+#include "arvoreAVL.h"
 #include "arquivos.h"
 #include "menu.h"
 

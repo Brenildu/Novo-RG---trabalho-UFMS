@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "hash.h"
+#include "arvoreAVL.h"
 
 void menuPrincipal();
 
