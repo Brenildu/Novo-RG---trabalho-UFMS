@@ -22,29 +22,6 @@ double stopTimer(struct timespec *start, struct timespec *end)
     return elapsed;
 }
 
-Node *carregarDadosTxtParaArvoreCPF(Estado *estados, Node *cpfTree, const char *nomeArquivo)
-{
-    FILE *file = fopen(nomeArquivo, "r");
-    if (file == NULL)
-    {
-        perror("Não foi possível abrir o arquivo de dados");
-        return cpfTree;
-    }
-
-    char linha[256];
-    while (fgets(linha, sizeof(linha), file))
-    {
-        CIN cin;
-        // Supondo que a linha está formatada de forma que os dados podem ser lidos assim:
-        sscanf(linha, "%ld %s %s %d", &cin.registro, cin.nome, cin.sobrenome, &cin.anoNascimento);
-        inserir_nome(estados, cin); // Insere nos estados
-        cpfTree = inserir_cin(cpfTree, cin); // Insere na árvore de CPFs
-    }
-
-    fclose(file);
-    return cpfTree;
-}
-
 int main(int argc, char *argv[])
 {
     struct timespec tstart = {0, 0}, tend = {0, 0};
@@ -52,11 +29,10 @@ int main(int argc, char *argv[])
     int op, anoInicio, anoFim;
     long cpf;
     Estado *estados = popular_estados();
-    Node *cpfTree = NULL; // Árvore AVL para CPFs
     CIN cin_novo;
 
     // Carregar dados existentes
-    cpfTree = carregarDadosTxtParaArvoreCPF(estados, cpfTree, "dados.txt");
+    carregarDadosTxt(estados, "dados.txt");
 
     // Carregar dados dos arquivos JSON passados como argumentos
     for (int i = 1; i < argc; i++)
@@ -80,7 +56,7 @@ int main(int argc, char *argv[])
             else
             {
                 startTimer(&tstart);
-                Node *result = busca_cin(cpfTree, cpf, NULL);
+                Node *result = busca_cin(NULL, cpf, NULL);
                 double elapsed = stopTimer(&tstart, &tend);
                 printf("Tempo de execução: %.3f segundos\n", elapsed / 1e9);
                 if (result != NULL)
@@ -104,7 +80,6 @@ int main(int argc, char *argv[])
             else
             {
                 inserir_nome(estados, cin_novo);
-                cpfTree = inserir_cin(cpfTree, cin_novo); // Inserir na árvore AVL
             }
             break;
         }
@@ -117,11 +92,10 @@ int main(int argc, char *argv[])
             }
             else
             {
-                Node *no_removido = busca_cin(cpfTree, cpf, NULL);
+                Node *no_removido = busca_cin(NULL, cpf, NULL);
                 if (no_removido != NULL)
                 {
                     remover_cin_estado(estados, no_removido);
-                    cpfTree = remover_cin(cpfTree, cpf); // Remover da árvore AVL
                 }
                 else
                 {
@@ -143,7 +117,6 @@ int main(int argc, char *argv[])
             printf("Finalizando programa!!\n");
             salvarDadosTxt(estados, "dados.txt");
             deleta_arvore(estados);
-            deleta_arvore(cpfTree);
             break;
 
         default:
