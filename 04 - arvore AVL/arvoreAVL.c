@@ -1,9 +1,11 @@
 #include "arvoreAVL.h"
 
-Node *novo_node(CIN cin) {
+Node *novo_node(CIN cin)
+{
     Node *novo = (Node *)malloc(sizeof(Node));
 
-    if (novo) {
+    if (novo)
+    {
         novo->cin = cin;
         novo->dir = NULL;
         novo->esq = NULL;
@@ -13,10 +15,12 @@ Node *novo_node(CIN cin) {
     return novo;
 }
 
-Estado *novo_estado(int valor_sigla) {
+Estado *novo_estado(int valor_sigla)
+{
     Estado *novo_estado = (Estado *)malloc(sizeof(Estado));
 
-    if (novo_estado) {
+    if (novo_estado)
+    {
         novo_estado->node = NULL;
         novo_estado->dir = NULL;
         novo_estado->esq = NULL;
@@ -28,13 +32,15 @@ Estado *novo_estado(int valor_sigla) {
 const char *siglas_estados[] = {
     "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA",
     "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN",
-    "RO", "RR", "RS", "SC", "SE", "SP", "TO"
-};
+    "RO", "RR", "RS", "SC", "SE", "SP", "TO"};
 
 // Obter o valor correspondente ao estado
-int valor_estado(const char *sigla) {
-    for (int i = 0; i < 27; i++) {
-        if (strcmp(siglas_estados[i], sigla) == 0) {
+int valor_estado(const char *sigla)
+{
+    for (int i = 0; i < 27; i++)
+    {
+        if (strcmp(siglas_estados[i], sigla) == 0)
+        {
             return i;
         }
     }
@@ -42,17 +48,20 @@ int valor_estado(const char *sigla) {
 }
 
 // Funções auxiliares para AVL
-int altura(Node *N) {
+int altura(Node *N)
+{
     if (N == NULL)
         return 0;
     return N->altura;
 }
 
-int max(int a, int b) {
+int max(int a, int b)
+{
     return (a > b) ? a : b;
 }
 
-Node *rotacao_direita(Node *y) {
+Node *rotacao_direita(Node *y)
+{
     Node *x = y->esq;
     Node *T2 = x->dir;
 
@@ -68,7 +77,8 @@ Node *rotacao_direita(Node *y) {
     return x;
 }
 
-Node *rotacao_esquerda(Node *x) {
+Node *rotacao_esquerda(Node *x)
+{
     Node *y = x->dir;
     Node *T2 = y->esq;
 
@@ -84,13 +94,15 @@ Node *rotacao_esquerda(Node *x) {
     return y;
 }
 
-int getBalance(Node *N) {
+int getBalance(Node *N)
+{
     if (N == NULL)
         return 0;
     return altura(N->esq) - altura(N->dir);
 }
 
-Node *inserir_avl(Node *node, CIN cin) {
+Node *inserir_avl(Node *node, CIN cin)
+{
     if (node == NULL)
         return novo_node(cin);
 
@@ -118,13 +130,15 @@ Node *inserir_avl(Node *node, CIN cin) {
         return rotacao_esquerda(node);
 
     // Caso Esquerda Direita
-    if (balance > 1 && cin.registro > node->esq->cin.registro) {
+    if (balance > 1 && cin.registro > node->esq->cin.registro)
+    {
         node->esq = rotacao_esquerda(node->esq);
         return rotacao_direita(node);
     }
 
     // Caso Direita Esquerda
-    if (balance < -1 && cin.registro < node->dir->cin.registro) {
+    if (balance < -1 && cin.registro < node->dir->cin.registro)
+    {
         node->dir = rotacao_direita(node->dir);
         return rotacao_esquerda(node);
     }
@@ -132,7 +146,8 @@ Node *inserir_avl(Node *node, CIN cin) {
     return node;
 }
 
-Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior) {
+Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior)
+{
     if (estado == NULL)
         return anterior;
 
@@ -144,11 +159,14 @@ Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior) {
         return busca_estado(estado->esq, valor_sigla, estado);
 }
 
-Estado *popular_estados() {
+Estado *popular_estados()
+{
     Estado *raiz = novo_estado(13);
 
-    if (raiz) {
-        for (int i = 0; i < 27; i++) {
+    if (raiz)
+    {
+        for (int i = 0; i < 27; i++)
+        {
             Estado *novo = novo_estado(i);
             raiz = inserir_estado_avl(raiz, novo);
         }
@@ -157,7 +175,8 @@ Estado *popular_estados() {
     return raiz;
 }
 
-Estado *inserir_estado_avl(Estado *raiz, Estado *estado) {
+Estado *inserir_estado_avl(Estado *raiz, Estado *estado)
+{
     if (raiz == NULL)
         return estado;
 
@@ -171,7 +190,8 @@ Estado *inserir_estado_avl(Estado *raiz, Estado *estado) {
     return raiz;
 }
 
-Node *busca_cin(Node *raiz, long registro, Node *anterior) {
+Node *busca_cin(Node *raiz, long registro, Node *anterior)
+{
     if (raiz == NULL)
         return anterior;
 
@@ -184,7 +204,8 @@ Node *busca_cin(Node *raiz, long registro, Node *anterior) {
         return busca_cin(raiz->esq, registro, raiz);
 }
 
-Node *busca_nome(Node *raiz, const char *nome, Node *anterior) {
+Node *busca_nome(Node *raiz, const char *nome, Node *anterior)
+{
     if (raiz == NULL)
         return anterior;
 
@@ -197,15 +218,18 @@ Node *busca_nome(Node *raiz, const char *nome, Node *anterior) {
         return busca_nome(raiz->esq, nome, raiz);
 }
 
-void inserir_cin(Node **node, CIN cin) {
+void inserir_cin(Node **node, CIN cin)
+{
     *node = inserir_avl(*node, cin);
 }
 
-void inserir_nome(Estado *estados, CIN cin) {
+void inserir_nome(Estado *estados, CIN cin)
+{
     int valor_sigla = valor_estado(cin.registros_emetidos[0].estado);
     Estado *estado = busca_estado(estados, valor_sigla, NULL);
 
-    if (estado == NULL) {
+    if (estado == NULL)
+    {
         printf("Estado não encontrado para o registro: %ld\n", cin.registro);
         return;
     }
@@ -213,7 +237,8 @@ void inserir_nome(Estado *estados, CIN cin) {
     estado->node = inserir_avl(estado->node, cin);
 }
 
-Node *maior_ValorEsq(Node *no) {
+Node *maior_ValorEsq(Node *no)
+{
     Node *maior = no->esq;
 
     while (maior && maior->dir != NULL)
@@ -222,13 +247,15 @@ Node *maior_ValorEsq(Node *no) {
     return maior;
 }
 
-long remover_cin(Node **raiz, Estado *estados, long registro) {
+long remover_cin(Node **raiz, Estado *estados, long registro)
+{
     Node *no_removido = NULL;
     long reg_removido = -1;
 
     *raiz = remover_avl(*raiz, registro, &no_removido);
 
-    if (no_removido) {
+    if (no_removido)
+    {
         reg_removido = no_removido->cin.registro;
         remover_cin_estado(estados, no_removido);
         free(no_removido);
@@ -237,7 +264,8 @@ long remover_cin(Node **raiz, Estado *estados, long registro) {
     return reg_removido;
 }
 
-Node *remover_avl(Node *root, long registro, Node **no_removido) {
+Node *remover_avl(Node *root, long registro, Node **no_removido)
+{
     if (root == NULL)
         return root;
 
@@ -245,20 +273,26 @@ Node *remover_avl(Node *root, long registro, Node **no_removido) {
         root->esq = remover_avl(root->esq, registro, no_removido);
     else if (registro > root->cin.registro)
         root->dir = remover_avl(root->dir, registro, no_removido);
-    else {
+    else
+    {
         *no_removido = root;
 
-        if ((root->esq == NULL) || (root->dir == NULL)) {
+        if ((root->esq == NULL) || (root->dir == NULL))
+        {
             Node *temp = root->esq ? root->esq : root->dir;
 
-            if (temp == NULL) {
+            if (temp == NULL)
+            {
                 temp = root;
                 root = NULL;
-            } else
+            }
+            else
                 *root = *temp;
 
             free(temp);
-        } else {
+        }
+        else
+        {
             Node *temp = maior_ValorEsq(root);
 
             root->cin = temp->cin;
@@ -277,7 +311,8 @@ Node *remover_avl(Node *root, long registro, Node **no_removido) {
     if (balance > 1 && getBalance(root->esq) >= 0)
         return rotacao_direita(root);
 
-    if (balance > 1 && getBalance(root->esq) < 0) {
+    if (balance > 1 && getBalance(root->esq) < 0)
+    {
         root->esq = rotacao_esquerda(root->esq);
         return rotacao_direita(root);
     }
@@ -285,7 +320,8 @@ Node *remover_avl(Node *root, long registro, Node **no_removido) {
     if (balance < -1 && getBalance(root->dir) <= 0)
         return rotacao_esquerda(root);
 
-    if (balance < -1 && getBalance(root->dir) > 0) {
+    if (balance < -1 && getBalance(root->dir) > 0)
+    {
         root->dir = rotacao_direita(root->dir);
         return rotacao_esquerda(root);
     }
@@ -293,7 +329,8 @@ Node *remover_avl(Node *root, long registro, Node **no_removido) {
     return root;
 }
 
-void remover_cin_estado(Estado *estados, Node *no_removido) {
+void remover_cin_estado(Estado *estados, Node *no_removido)
+{
     int valor_sigla = valor_estado(no_removido->cin.registros_emetidos[0].estado);
     Estado *estado = busca_estado(estados, valor_sigla, NULL);
 
@@ -303,7 +340,8 @@ void remover_cin_estado(Estado *estados, Node *no_removido) {
     estado->node = remover_avl(estado->node, no_removido->cin.registro, &no_removido);
 }
 
-void imprimir_cins_idade(Node *arvore, int anoInicial, int anoFinal) {
+void imprimir_cins_idade(Node *arvore, int anoInicial, int anoFinal)
+{
     if (arvore == NULL)
         return;
 
@@ -315,7 +353,8 @@ void imprimir_cins_idade(Node *arvore, int anoInicial, int anoFinal) {
     imprimir_cins_idade(arvore->dir, anoInicial, anoFinal);
 }
 
-void imprimir_cin(CIN cin) {
+void imprimir_cin(CIN cin)
+{
     printf("\"nome\": \"%s\",\n\"cpf\": \"%ld\",\n\"rg\": \"%d\",\n\"data_nasc\": \"%d/%d/%d\",\n\"naturalidade\":{\n\t\"cidade\": \"%s\",\n\t\"estado\": \"%s\"\n}\n",
            cin.nome,
            cin.registro,
@@ -327,7 +366,8 @@ void imprimir_cin(CIN cin) {
            cin.registros_emetidos[0].estado);
 }
 
-void relatorio(Estado *estados, int anoInicial, int anoFinal) {
+void relatorio(Estado *estados, int anoInicial, int anoFinal)
+{
     if (estados == NULL)
         return;
 
@@ -336,7 +376,8 @@ void relatorio(Estado *estados, int anoInicial, int anoFinal) {
     relatorio(estados->dir, anoInicial, anoFinal);
 }
 
-void deleta_arvore(Node *arvore) {
+void deleta_arvore(Node *arvore)
+{
     if (arvore == NULL)
         return;
 
