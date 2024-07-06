@@ -1,33 +1,46 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>  // Incluir o cabeçalho para clock_gettime
+#include <time.h>
 #include "menu.h"
 #include "lista.h"
 #include "arquivos.h"
 
-void startTimer(struct timespec *start)
+/*gcc -Wall -Wextra -g3 main.c lista.c menu.c arquivos.c cJSON.c -o output\main.exe
+
+./output/main.exe (nome do arquivo)
+*/
+
+void startTimer(clock_t *start)
 {
-    clock_gettime(CLOCK_MONOTONIC, start);
+    *start = clock();
 }
 
-double stopTimer(struct timespec *start, struct timespec *end)
+double stopTimer(clock_t *start, clock_t *end)
 {
-    clock_gettime(CLOCK_MONOTONIC, end);
-    double elapsed = (end->tv_sec - start->tv_sec) * 1e9; // segundos para nanosegundos
-    elapsed += (end->tv_nsec - start->tv_nsec);           // nanosegundos
+    *end = clock();
+    double elapsed = ((double)(*end - *start)) / CLOCKS_PER_SEC;
     return elapsed;
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Uso: %s <nome_do_arquivo_json>\n", argv[0]);
+        return 1;
+    }
+
+    const char *filename = argv[1];
     int op, anoInicial, anoFinal;
     char cpf[12];
     CIN *lista = NULL;
     CIN *busca, *relatorio;
-    struct timespec tstart = {0, 0}, tend = {0, 0};
+    clock_t tstart, tend;
 
     // Carrega os dados do arquivo JSON
-    carregarDados(&lista, "dados.json");
+    startTimer(&tstart);
+    carregarDados(&lista, filename);
+    double elapsed = stopTimer(&tstart, &tend);
+    printf("\n-----------\nCarregar dados\nTempo de execucao : %.3f segundos\n", elapsed);
 
     do {
         op = menuPrincipal();
@@ -40,7 +53,7 @@ int main(void) {
                 startTimer(&tstart);
                 busca = busca_cin(lista, cpf);
 
-                double elapsed = stopTimer(&tstart, &tend);
+                elapsed = stopTimer(&tstart, &tend);
 
                 if (busca) {
                     imprimir_cin(*busca);
@@ -49,7 +62,7 @@ int main(void) {
                     printf("CPF nao encontrado\n");
                 }
 
-                printf("Tempo de execução: %.3f segundos\n", elapsed / 1e9);
+                printf("Tempo de execucao: %.3f segundos\n\n", elapsed);
                 break;
 
             case 2:
@@ -62,7 +75,8 @@ int main(void) {
                 imprimir_relatorio_em_arquivo(relatorio, "relatorio.txt");
                 deleta_lista(relatorio); // Exclui o relatório gerado
 
-                printf("Tempo de execução: %.3f segundos\n", elapsed / 1e9);
+                elapsed = stopTimer(&tstart, &tend);
+                printf("Tempo de execucao: %.3f segundos\n\n", elapsed);
                 break;
 
             case 3:

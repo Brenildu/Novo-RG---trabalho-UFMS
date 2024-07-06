@@ -50,7 +50,7 @@ void carregarDados(CIN **lista, const char *filename)
 
         strcpy(pessoa.nome, nome->valuestring);
         strcpy(pessoa.registro, cpf->valuestring);
-        sscanf(data_nasc->valuestring, "%d/%d/%d", &pessoa.data[2], &pessoa.data[1], &pessoa.data[0]);
+        sscanf(data_nasc->valuestring, "%d/%d/%d", &pessoa.data[0], &pessoa.data[1], &pessoa.data[2]);
         strcpy(pessoa.registros_emitidos[0].rg, rg->valuestring);
         strcpy(pessoa.registros_emitidos[0].cidade, cJSON_GetObjectItem(naturalidade, "cidade")->valuestring);
         strcpy(pessoa.registros_emitidos[0].estado, cJSON_GetObjectItem(naturalidade, "estado")->valuestring);

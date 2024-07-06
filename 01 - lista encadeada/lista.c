@@ -3,10 +3,6 @@
 #include <string.h>
 #include "lista.h"
 
-void teste()
-{
-    printf("Passou!!\n");
-}
 
 CIN *criar_no(CIN cin)
 {
@@ -28,7 +24,6 @@ void inserir_no(CIN **lista, CIN pessoa)
     {
         novoCIN->prox = *lista;
         *lista = novoCIN;
-        printf("Nó inserido\n");
     }
 }
 
