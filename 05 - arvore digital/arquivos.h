@@ -1,7 +1,7 @@
 #ifndef ARQUIVOS_H
 #define ARQUIVOS_H
 
-#include "arvoreAVL.h"
+#include "arvoreDigital.h"
 #include <json-c/json.h>
 
 char *readFile(const char *filename);
