@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <json-c/json.h>
 
 // Função para ler o conteúdo de um arquivo e retornar como uma string
 char *readFile(const char *filename)

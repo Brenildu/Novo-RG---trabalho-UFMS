@@ -1,10 +1,10 @@
 #include "hash.h"
 
 // Preencher a tabela hash com NULL
-void popular_hash(No tabela[], int tamanho)
+void popular_hash(No tabela[TAM])
 {
 	int i;
-	for (i = 0; i < tamanho; i++)
+	for (i = 0; i < TAM; i++)
 	{
 		tabela[i].prox = NULL;
 	}
@@ -78,7 +78,7 @@ int obter_posicao_alfabetica(char letra)
 	{
 		return 8;
 	}
-	if (letra == 'k' || letra == 'q' || letra == 'u' || letra == 'x' || letra == 'x' || letra == 'w' || letra == 'y' || letra == 'z')
+	if (letra == 'k' || letra == 'q' || letra == 'u' || letra == 'x'  || letra == 'w' || letra == 'y' || letra == 'z')
 	{
 		return 9;
 	}
@@ -160,7 +160,7 @@ Estado *criar_estado()
 		printf("Falha ao alocar memória para estado.\n");
 		return NULL;
 	}
-	popular_hash(estado->tabela, TAM_ALFABETICO);
+	popular_hash(estado->tabela);
 	return estado;
 }
 

@@ -1,12 +1,11 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include <stdio.h>
-#include <stdlib.h>
+void teste3();
 
 int menuPrincipal();
 
-long menu1();
+void menu1(char *cpf);
 
 void menu2(int *anoInicio, int *anoFinal);
 

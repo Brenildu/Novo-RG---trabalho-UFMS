@@ -1,14 +1,8 @@
 #include "arquivos.h"
-#include "hash.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <json-c/json.h>
 
-// Função para ler o conteúdo de um arquivo e retornar como uma string
 char *readFile(const char *filename)
 {
-    FILE *file = fopen(filename, "rb");
+    FILE *file = fopen(filename, "r");
     if (file == NULL)
     {
         perror("Error opening file");
@@ -41,30 +35,21 @@ void parseDate(const char *str, int data[3])
 }
 
 // Função para adicionar um novo CIN na tabela hash
-void addCIN(No tabela[], CIN pessoa)
+void addCIN(No *tabela[], CIN pessoa)
 {
+    int hash = funcao_hash(pessoa.registro);
     No *novo = criar_no(pessoa);
-    if (!novo)
+    if (novo == NULL)
     {
         perror("Error allocating memory");
         return;
     }
-    insere_tabela(tabela, novo);
+    printf("Adicionou!");
+    inserir_ordenado(tabela[hash], novo);
 }
 
-void addCIN_estados(Estado estados[], CIN pessoa)
-{
-    No *novo = criar_no(pessoa);
-    if (!novo)
-    {
-        perror("Error allocating memory");
-        return;
-    }
-    insere_estado(estados, novo, novo->cin.registros_emetidos[0].estado);
-}
-
-// Função para analisar um arquivo JSON e inserir os dados na tabela hash
-void parseJSON(const char *filename, No tabela[], Estado estados[])
+// Função para analisar um arquivo JSON simples e inserir os dados na tabela hash
+void parseJSON(const char *filename, No *tabela[])
 {
     char *json_data = readFile(filename);
     if (json_data == NULL)
@@ -72,92 +57,55 @@ void parseJSON(const char *filename, No tabela[], Estado estados[])
         return;
     }
 
-    struct json_object *parsed_json = json_tokener_parse(json_data);
-    if (parsed_json == NULL)
+    // Simulação de parsing manual de JSON
+    char *ptr = strtok(json_data, "{\":,[]}");
+    CIN pessoa;
+
+    while (ptr != NULL)
     {
-        fprintf(stderr, "Error parsing JSON data\n");
-        free(json_data);
-        return;
-    }
-
-    struct json_object *estado;
-    struct json_object *cidadaos;
-
-    if (!json_object_object_get_ex(parsed_json, "uf", &estado))
-    {
-        fprintf(stderr, "Error: missing 'uf' field\n");
-        json_object_put(parsed_json);
-        free(json_data);
-        return;
-    }
-
-    if (!json_object_object_get_ex(parsed_json, "cidadaos", &cidadaos) || !json_object_is_type(cidadaos, json_type_array))
-    {
-        fprintf(stderr, "Error: 'cidadaos' is not an array\n");
-        json_object_put(parsed_json);
-        free(json_data);
-        return;
-    }
-
-    for (size_t i = 0; i < json_object_array_length(cidadaos); i++)
-    {
-        struct json_object *cidadao = json_object_array_get_idx(cidadaos, i);
-        CIN pessoa;
-
-        struct json_object *nome, *data_nasc, *rg, *naturalidade, *cidade, *estado_nat, *cpf;
-
-        json_object_object_get_ex(cidadao, "nome", &nome);
-        json_object_object_get_ex(cidadao, "data_nasc", &data_nasc);
-        json_object_object_get_ex(cidadao, "rg", &rg);
-        json_object_object_get_ex(cidadao, "naturalidade", &naturalidade);
-        json_object_object_get_ex(cidadao, "cpf", &cpf);
-
-        json_object_object_get_ex(naturalidade, "cidade", &cidade);
-        json_object_object_get_ex(naturalidade, "estado", &estado_nat);
-
-        if (nome && json_object_is_type(nome, json_type_string))
+        if (strcmp(ptr, "nome") == 0)
         {
-            strncpy(pessoa.nome, json_object_get_string(nome), sizeof(pessoa.nome) - 1);
+            ptr = strtok(NULL, "{\":,[]}");
+            strncpy(pessoa.nome, ptr, sizeof(pessoa.nome) - 1);
             pessoa.nome[sizeof(pessoa.nome) - 1] = '\0';
         }
-
-        if (data_nasc && json_object_is_type(data_nasc, json_type_string))
+        else if (strcmp(ptr, "data_nasc") == 0)
         {
-            parseDate(json_object_get_string(data_nasc), pessoa.data);
+            ptr = strtok(NULL, "{\":,[]}");
+            parseDate(ptr, pessoa.data);
         }
-
-        if (rg && json_object_is_type(rg, json_type_int))
+        else if (strcmp(ptr, "rg") == 0)
         {
-            pessoa.registros_emetidos[0].rg = json_object_get_int(rg);
+            ptr = strtok(NULL, "{\":,[]}");
+            pessoa.registros_emetidos[0].rg = atoi(ptr);
         }
-
-        if (cidade && json_object_is_type(cidade, json_type_string))
+        else if (strcmp(ptr, "cidade") == 0)
         {
-            strncpy(pessoa.registros_emetidos[0].cidade, json_object_get_string(cidade), sizeof(pessoa.registros_emetidos[0].cidade) - 1);
+            ptr = strtok(NULL, "{\":,[]}");
+            strncpy(pessoa.registros_emetidos[0].cidade, ptr, sizeof(pessoa.registros_emetidos[0].cidade) - 1);
             pessoa.registros_emetidos[0].cidade[sizeof(pessoa.registros_emetidos[0].cidade) - 1] = '\0';
         }
-
-        if (estado_nat && json_object_is_type(estado_nat, json_type_string))
+        else if (strcmp(ptr, "estado") == 0)
         {
-            strncpy(pessoa.registros_emetidos[0].estado, json_object_get_string(estado_nat), sizeof(pessoa.registros_emetidos[0].estado) - 1);
+            ptr = strtok(NULL, "{\":,[]}");
+            strncpy(pessoa.registros_emetidos[0].estado, ptr, sizeof(pessoa.registros_emetidos[0].estado) - 1);
             pessoa.registros_emetidos[0].estado[sizeof(pessoa.registros_emetidos[0].estado) - 1] = '\0';
         }
-
-        if (cpf && json_object_is_type(cpf, json_type_string))
+        else if (strcmp(ptr, "cpf") == 0)
         {
-            pessoa.registro = atol(json_object_get_string(cpf));
+            ptr = strtok(NULL, "{\":,[]}");
+            pessoa.registro = atol(ptr);
+            // Adiciona o CIN à tabela de dispersão e aos estados
+            addCIN(tabela, pessoa);
         }
 
-        addCIN(tabela, pessoa);
-        addCIN_estados(estados, pessoa);
+        ptr = strtok(NULL, "{\":,[]}");
     }
 
-    json_object_put(parsed_json);
     free(json_data);
 }
 
-// Função para salvar dados em um arquivo de texto
-void salvarDadosTxt(No tabela[], const char *filename)
+void salvarDadosTxt(No *tabela[], const char *filename)
 {
     FILE *file = fopen(filename, "w");
     if (file == NULL)
@@ -168,7 +116,7 @@ void salvarDadosTxt(No tabela[], const char *filename)
 
     for (int i = 0; i < TAM; i++)
     {
-        No *p = tabela[i].prox;
+        No *p = tabela[i]->prox;
         while (p != NULL)
         {
             fprintf(file, "Num Registro: %ld\n", p->cin.registro);
@@ -184,9 +132,9 @@ void salvarDadosTxt(No tabela[], const char *filename)
     fclose(file);
 }
 
-// Função para carregar dados de um arquivo de texto
-void carregarDadosTxt(No tabela[], Estado estados[], const char *filename)
+void carregarDadosTxt(No *tabela[], const char *filename)
 {
+    printf("Entrou!\n");
     FILE *file = fopen(filename, "r");
     if (file == NULL)
     {
@@ -234,7 +182,7 @@ void carregarDadosTxt(No tabela[], Estado estados[], const char *filename)
     if (pessoa.nome[0] != '\0')
     {
         addCIN(tabela, pessoa);
-        addCIN
+        printf("adicionar!\n");
     }
 
     fclose(file);

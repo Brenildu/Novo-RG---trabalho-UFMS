@@ -6,8 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define TAM (long)181817
-#define TAM_ALFABETICO 17
+#define TAM 1297
 
 typedef struct
 {
@@ -32,12 +31,12 @@ typedef struct No
 
 typedef struct Estado
 {
-	struct No tabela[TAM_ALFABETICO];
+	struct No tabela[17];
 } Estado;
 
-void popular_hash(No tabela[], int tamanho);
+void popular_hash(No tabela[TAM]);
 
-void popular_estados(Estado estados[]);
+void popular_estados(Estado estados[], No tabela[]);
 
 long valor_sequencia(long registro);
 
@@ -57,13 +56,9 @@ void inserir_lista_ordem_alfabetica(No *lista, No *novo);
 
 No *busca_cin(No tabela_cin[], long registro);
 
-void insere_tabela(No tabela[], No *novo);
+void insere_tabela(No *tabela[], No *novo);
 
-void insere_estado(Estado estados[], No *novo, const char *sigla);
-
-long remover_cin(No tabela[], Estado estados[], long registro);
-
-void remover_cin_estado(Estado estados[], No *no_removido);
+void insere_estado(Estado *estados[], No *novo, const char *sigla);
 
 void imprimir_cins_idade(No *lista, int anoInicial, int anoFinal);
 
