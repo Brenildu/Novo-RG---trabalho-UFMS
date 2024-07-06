@@ -1,6 +1,8 @@
 #ifndef MENU_H
 #define MENU_H
 
+#include "estrutura.h"
+
 void teste3();
 
 int menuPrincipal();

@@ -1,0 +1,42 @@
+Nome: Yuri Tomás Bernardes
+CPF: 07846662880
+Data de Nascimento: 1996/01/0025
+Cidade: São Paulo
+Estado: SP
+RG: 437382230
+
+Nome: Miguel Yuri Barbosa
+CPF: 99600283133
+Data de Nascimento: 1990/01/0023
+Cidade: Dourados
+Estado: MS
+RG: 432674937
+
+Nome: Luís Gabriel Dias
+CPF: 50040912183
+Data de Nascimento: 1990/01/0016
+Cidade: Três Lagoas
+Estado: MS
+RG: 302307424
+
+Nome: Victor Tomás Drumond
+CPF: 70054769213
+Data de Nascimento: 1984/02/0001
+Cidade: Rio Branco
+Estado: AC
+RG: 487020054
+
+Nome: Daiane Carla Silva
+CPF: 00899472150
+Data de Nascimento: 1976/02/0005
+Cidade: Três Lagoas
+Estado: MS
+RG: 485129310
+
+Nome: Marina Andrea Nunes
+CPF: 34854293179
+Data de Nascimento: 2001/02/0002
+Cidade: Campo Grande
+Estado: MS
+RG: 220113774
+

@@ -1,162 +1,122 @@
+#include "cJSON.h"
 #include "arquivos.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-void teste1()
+void carregarDados(CIN **lista, const char *filename)
 {
-    printf("PAssou do testee1\n");
-}
-
-char *readFile(const char *filename)
-{
-    FILE *file = fopen(filename, "rb");
-    if (file == NULL)
+    FILE *file = fopen(filename, "r");
+    if (!file)
     {
-        perror("Error opening file");
-        return NULL;
+        perror("Erro ao abrir o arquivo");
+        return;
     }
 
     fseek(file, 0, SEEK_END);
     long length = ftell(file);
     fseek(file, 0, SEEK_SET);
-
-    char *data = (char *)malloc(length + 1);
-    if (data == NULL)
-    {
-        perror("Error allocating memory");
-        fclose(file);
-        return NULL;
-    }
-
+    char *data = malloc(length + 1);
     fread(data, 1, length, file);
+    fclose(file);
     data[length] = '\0';
 
-    fclose(file);
-    return data;
-}
-
-CIN *parseJSON(const char *filename, CIN **lst)
-{
-    CIN *lst = NULL;
-
-    return lst;
-}
-
-CIN *carregarDadosTxt(const char *filename)
-{
-    FILE *file = fopen(filename, "r");
-    if (file == NULL)
+    cJSON *json = cJSON_Parse(data);
+    if (!json)
     {
-        perror("Error opening file");
-        return NULL;
-    }
-
-    CIN *lst = NULL;
-    char line[1024]; // Buffer para armazenar cada linha lida do arquivo
-
-    CIN pessoa;
-    memset(&pessoa, 0, sizeof(CIN)); // Inicializa a estrutura com zeros
-
-    int naturalidadeIndex = 0;
-
-    while (fgets(line, sizeof(line), file) != NULL)
-    {
-        if (strncmp(line, "Num Registro: ", 14) == 0)
-        {
-            sscanf(line, "Num Registro: %s", &pessoa.registro);
-        }
-        else if (strncmp(line, "Nome: ", 6) == 0)
-        {
-            sscanf(line, "Nome: %[^\n]", pessoa.nome);
-        }
-        else if (strncmp(line, "Data de Nascimento: ", 20) == 0)
-        {
-            sscanf(line, "Data de Nascimento: %d/%d/%d", &pessoa.data[0], &pessoa.data[1], &pessoa.data[2]);
-        }
-        else if (strncmp(line, "Cidade ", 7) == 0)
-        {
-            sscanf(line, "Cidade %*d: %[^,], %s", pessoa.registros_emitidos[0].cidade, pessoa.registros_emitidos[0].estado);
-        }
-        else if (strncmp(line, "RG: ", 4) == 0)
-        {
-            sscanf(line, "RG: %d", &pessoa.registros_emitidos[0].rg);
-        }
-
-        // Verifica se uma nova pessoa deve ser adicionada
-        if (line[0] == '\n' || line[0] == '\r')
-        {
-            if (pessoa.nome[0] != '\0')
-            {
-                addCIN(&lst, pessoa);
-                memset(&pessoa, 0, sizeof(CIN)); // Reseta a estrutura para o próximo bloco de dados
-                naturalidadeIndex = 0;
-            }
-        }
-    }
-
-    // Adiciona a última pessoa, caso o arquivo não termine com uma nova linha
-    if (pessoa.nome[0] != '\0')
-    {
-        addCIN(&lst, pessoa);
-    }
-
-    fclose(file);
-    return lst;
-}
-
-void salvarRelatorioTxt(CIN *lstPorEstado[], const char *filename)
-{
-    FILE *file = fopen(filename, "w");
-    if (file == NULL)
-    {
-        perror("Error opening file");
+        printf("Erro ao fazer parsing do JSON\n");
+        free(data);
         return;
     }
 
-    for (int i = 0; i < 27; i++)
+    cJSON *cidadaos = cJSON_GetObjectItem(json, "cidadãos");
+    if (!cidadaos)
     {
-        if (lstPorEstado[i] != NULL)
-        {
-            fprintf(file, "Estado :\n");
-            CIN *p = lstPorEstado[i];
-            while (p != NULL)
-            {
-                fprintf(file, "Num Registro: %s\n", p->registro);
-                fprintf(file, "Nome: %s\n", p->nome);
-                fprintf(file, "Data de Nascimento: %d/%d/%d\n", p->data[0], p->data[1], p->data[2]);
-                // Imprimir outros dados conforme necessário
-                fprintf(file, "Cidade: %s, %s\n", p->registros_emitidos[0].cidade, p->registros_emitidos[0].estado);
-                fprintf(file, "RG: %s\n", p->registros_emitidos[0].rg);
-
-                p = p->prox;
-            }
-            fprintf(file, "\n");
-        }
-    }
-
-    fclose(file);
-}
-
-void salvarDadosTxt(CIN *lst, const char *filename)
-{
-    FILE *file = fopen(filename, "w");
-    if (file == NULL)
-    {
-        perror("Error opening file");
+        printf("Erro ao encontrar o item 'cidadãos' no JSON\n");
+        cJSON_Delete(json);
+        free(data);
         return;
     }
 
-    CIN *p = lst;
-    while (p != NULL)
+    cJSON *cidadao = NULL;
+    cJSON_ArrayForEach(cidadao, cidadaos)
     {
+        CIN pessoa;
+        cJSON *nome = cJSON_GetObjectItem(cidadao, "nome");
+        cJSON *cpf = cJSON_GetObjectItem(cidadao, "cpf");
+        cJSON *rg = cJSON_GetObjectItem(cidadao, "rg");
+        cJSON *data_nasc = cJSON_GetObjectItem(cidadao, "data_nasc");
+        cJSON *naturalidade = cJSON_GetObjectItem(cidadao, "naturalidade");
 
-        fprintf(file, "Num Registro: %ld\n", p->registro);
+        strcpy(pessoa.nome, nome->valuestring);
+        strcpy(pessoa.registro, cpf->valuestring);
+        sscanf(data_nasc->valuestring, "%d/%d/%d", &pessoa.data[2], &pessoa.data[1], &pessoa.data[0]);
+        strcpy(pessoa.registros_emitidos[0].rg, rg->valuestring);
+        strcpy(pessoa.registros_emitidos[0].cidade, cJSON_GetObjectItem(naturalidade, "cidade")->valuestring);
+        strcpy(pessoa.registros_emitidos[0].estado, cJSON_GetObjectItem(naturalidade, "estado")->valuestring);
+
+        inserir_no(lista, pessoa);
+    }
+
+    cJSON_Delete(json);
+    free(data);
+}
+
+void salvarDados(CIN *lista, const char *filename)
+{
+    FILE *file = fopen(filename, "w");
+    if (!file)
+    {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    CIN *p = lista;
+    while (p)
+    {
         fprintf(file, "Nome: %s\n", p->nome);
-        fprintf(file, "Data de Nascimento: %d/%d/%d\n", p->data[0], p->data[1], p->data[2]);
-        fprintf(file, "Naturalidade: %s, %s\n", p->registros_emitidos[0].cidade, p->registros_emitidos[0].estado);
-
-        fprintf(file, "\n");
-
+        fprintf(file, "CPF: %s\n", p->registro);
+        fprintf(file, "Data de Nascimento: %02d/%02d/%04d\n", p->data[0], p->data[1], p->data[2]);
+        fprintf(file, "Cidade: %s\n", p->registros_emitidos[0].cidade);
+        fprintf(file, "Estado: %s\n", p->registros_emitidos[0].estado);
+        fprintf(file, "RG: %s\n\n", p->registros_emitidos[0].rg);
         p = p->prox;
     }
 
+    fclose(file);
+}
+
+void imprimir_relatorio_em_arquivo(CIN *relatorio, const char *filename)
+{
+    FILE *file = fopen(filename, "w");
+    if (!file)
+    {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    CIN *p = relatorio, cin;
+    if(p){
+        fprintf(file, "{\"uf\": \"%s\",\n \"cidadãos\": [", (*p).registros_emitidos[0].estado);
+    }
+    while (p)
+    {
+        cin = *p;
+        fprintf(file, "\n\t{\n\t\"nome\": \"%s\",\n\t\"cpf\": \"%s\",\n\t\"rg\": \"%s\",\n\t\"data_nasc\": \"%d/%d/%d\",\n\t\"naturalidade\":{\n\t\t\"cidade\": \"%s\",\n\t\t\"estado\": \"%s\"\n\t},",
+                cin.nome,
+                cin.registro,
+                cin.registros_emitidos[0].rg,
+                cin.data[0],
+                cin.data[1],
+                cin.data[2],
+                cin.registros_emitidos[0].cidade,
+                cin.registros_emitidos[0].estado);
+
+        if(p->prox && strcmp(p->prox->registros_emitidos[0].estado, p->registros_emitidos[0].estado) != 0){
+            fprintf(file, "\n\t]\n}\n{\"uf\": \"%s\",\n \"cidadãos\": [", p->prox->registros_emitidos[0].estado);
+        }
+        p = p->prox;
+    }
+    fprintf(file, "\n\t]\n}");
     fclose(file);
 }

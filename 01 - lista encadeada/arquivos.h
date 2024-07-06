@@ -1,17 +1,12 @@
 #ifndef ARQUIVOS_H
 #define ARQUIVOS_H
+
 #include "lista.h"
 
-void teste1();
+void carregarDados(CIN **lista, const char *filename);
 
-char *readFile(const char *filename);
+void salvarDados(CIN *lista, const char *filename);
 
-CIN *parseJSON(const char *filename, CIN **lst);
-
-CIN *carregarDadosTxt(const char *filename);
-
-void salvarRelatorioTxt(CIN *lstPorEstado[], const char *filename);
-
-void salvarDadosTxt(CIN *lst, const char *filename);
+void imprimir_relatorio_em_arquivo(CIN *relatorio, const char *filename);
 
 #endif

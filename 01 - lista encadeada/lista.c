@@ -1,82 +1,45 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "lista.h"
 
 void teste()
 {
-    printf("Passou!!");
+    printf("Passou!!\n");
 }
 
-/*FUNÇAO INSERE ORDENADO NA LISTA
-void addCIN(CIN **lst, CIN pessoa) {
-    CIN *novaCIN = (CIN *)malloc(sizeof(CIN));
-    if (novaCIN == NULL) {
-        perror("Error allocating memory");
-        return;
-    }
-    *novaCIN = pessoa;
-    novaCIN->prox = NULL;
-
-    // Se a lista estiver vazia ou a nova pessoa deve ser a primeira
-    if (*lst == NULL || (*lst)->num_registro > pessoa.num_registro) {
-        novaCIN->prox = *lst;
-        *lst = novaCIN;
-        return;
-    }
-
-    CIN *current = *lst;
-    while (current->prox != NULL && current->prox->num_registro < pessoa.num_registro) {
-        current = current->prox;
-    }
-
-    // Verifica se a pessoa já está na lista
-    if (current->num_registro == pessoa.num_registro) {
-        // Verifica se o RG já existe para o estado
-        for (int i = 0; i < 27; i++) {
-            if (strcmp(current->naturalidade[i].estado, pessoa.naturalidade[0].estado) == 0) {
-                printf("A pessoa %s já possui um RG para o estado %s.\n", pessoa.nome, pessoa.naturalidade[0].estado);
-                free(novaCIN);
-                return;
-            } else if (current->naturalidade[i].estado[0] == '\0') {
-                current->naturalidade[i] = pessoa.naturalidade[0];
-                printf("Novo RG adicionado para %s no estado %s.\n", pessoa.nome, pessoa.naturalidade[0].estado);
-                free(novaCIN);
-                return;
-            }
-        }
-    } else {
-        novaCIN->prox = current->prox;
-        current->prox = novaCIN;
-    }
-}
-*/
-CIN *criar_no()
+CIN *criar_no(CIN cin)
 {
     CIN *novo = (CIN *)malloc(sizeof(CIN));
-
-    if (novo != NULL)
+    if (!novo)
     {
-        printf("Erro ao alocar memoria!!");
+        printf("Falha ao alocar memória.\n");
         return NULL;
     }
-
+    *novo = cin;
+    novo->prox = NULL;
     return novo;
 }
 
 void inserir_no(CIN **lista, CIN pessoa)
 {
-    CIN *novoCIN = criar_no;
-
+    CIN *novoCIN = criar_no(pessoa);
     if (novoCIN)
     {
-        *novoCIN = pessoa;
         novoCIN->prox = *lista;
         *lista = novoCIN;
-        printf("No inserido");
+        printf("Nó inserido\n");
     }
 }
+
 CIN *busca_cin(CIN *lista, char registro[12])
 {
-    CIN *cin = NULL;
-    return cin;
+    CIN *p = lista;
+    while (p && strcmp(p->registro, registro) != 0)
+    {
+        p = p->prox;
+    }
+    return p;
 }
 
 void imprimir_cin(CIN cin)
@@ -92,40 +55,72 @@ void imprimir_cin(CIN cin)
            cin.registros_emitidos[0].estado);
 }
 
-void relatorio(CIN *lista, int anoInicial, int anoFinal)
+void insere_ordenado(CIN **lista, CIN pessoa)
 {
-    CIN *listaPorEstado[27] = {NULL}; // Array de listas, um para cada estado (0-26)
-
-    // Filtrar pessoas pela faixa etária e agrupar por estado
-    while (lista != NULL)
+    CIN *novo = criar_no(pessoa);
+    if (!novo)
     {
-        if (lista->data[2] >= anoInicial && lista->data[2] <= anoFinal)
-        {
-            // Copiar a pessoa para evitar modificar a lista original
-            CIN pessoaCopia = *lista;
-            pessoaCopia.prox = NULL;
-
-            // Determinar o índice do estado
-            int estadoIdx = -1;
-            int i;
-            for (i = 0; i < 27; i++)
-            {
-            }
-
-            if (estadoIdx >= 0 && estadoIdx < 27)
-            {
-                addCINOrdenadaPorNome(&listaPorEstado[estadoIdx], pessoaCopia);
-            }
-        }
-        lista = lista->prox;
+        return;
     }
 
-    // Salvar relatório em arquivo de texto
-    salvarRelatorioTxt(listaPorEstado, "RelatorioEstado.txt");
-    // Destruir listas temporárias
-    for (int i = 0; i < 27; i++)
+    CIN *p = *lista;
+    CIN *q = NULL;
+
+    // Encontra o ponto de inserção baseado no estado
+    while (p != NULL && strcmp(p->registros_emitidos[0].estado, pessoa.registros_emitidos[0].estado) < 0)
     {
-        deleta_lista(listaPorEstado[i]);
+        q = p;
+        p = p->prox;
+    }
+
+    // Se encontrou um estado igual, insere ordenado por nome
+    if (p != NULL && strcmp(p->registros_emitidos[0].estado, pessoa.registros_emitidos[0].estado) == 0)
+    {
+        while (p != NULL && strcmp(p->registros_emitidos[0].estado, pessoa.registros_emitidos[0].estado) == 0 && strcmp(p->nome, pessoa.nome) < 0)
+        {
+            q = p;
+            p = p->prox;
+        }
+    }
+
+    // Insere o novo nó na posição correta
+    if (q == NULL)
+    {
+        // Inserir no início da lista
+        novo->prox = *lista;
+        *lista = novo;
+    }
+    else
+    {
+        // Inserir após q
+        q->prox = novo;
+        novo->prox = p;
+    }
+}
+
+
+CIN *gerar_relatorio(CIN *lista, int anoInicial, int anoFinal)
+{
+    CIN *relat = NULL;
+    CIN *p = lista;
+    while (p)
+    {
+        if (p->data[2] >= anoInicial && p->data[2] <= anoFinal)
+        {
+            insere_ordenado(&relat, *p);
+        }
+        p = p->prox;
+    }
+    return relat;
+}
+
+void imprimir_relatorio(CIN *relatorio)
+{
+    CIN *p = relatorio;
+    while (p)
+    {
+        imprimir_cin(*p);
+        p = p->prox;
     }
 }
 
