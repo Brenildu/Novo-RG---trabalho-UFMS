@@ -1,188 +1,138 @@
+#include "cJSON.h"
 #include "arquivos.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-char *readFile(const char *filename)
-{
+void carregarDados(No tabela[TAM], const char *filename) {
     FILE *file = fopen(filename, "r");
-    if (file == NULL)
-    {
-        perror("Error opening file");
-        return NULL;
+    if (!file) {
+        perror("Erro ao abrir o arquivo");
+        return;
     }
-
+    
     fseek(file, 0, SEEK_END);
     long length = ftell(file);
     fseek(file, 0, SEEK_SET);
-
-    char *data = (char *)malloc(length + 1);
-    if (data == NULL)
-    {
-        perror("Error allocating memory");
-        fclose(file);
-        return NULL;
-    }
-
+    char *data = malloc(length + 1);
     fread(data, 1, length, file);
+    fclose(file);
     data[length] = '\0';
 
-    fclose(file);
-    return data;
-}
-
-// Função para converter uma string de data no formato "dd/mm/aaaa" para um array de inteiros
-void parseDate(const char *str, int data[3])
-{
-    sscanf(str, "%d/%d/%d", &data[0], &data[1], &data[2]);
-}
-
-// Função para adicionar um novo CIN na tabela hash
-void addCIN(No *tabela[], CIN pessoa)
-{
-    int hash = funcao_hash(pessoa.registro);
-    No *novo = criar_no(pessoa);
-    if (novo == NULL)
-    {
-        perror("Error allocating memory");
-        return;
-    }
-    printf("Adicionou!");
-    inserir_ordenado(tabela[hash], novo);
-}
-
-// Função para analisar um arquivo JSON simples e inserir os dados na tabela hash
-void parseJSON(const char *filename, No *tabela[])
-{
-    char *json_data = readFile(filename);
-    if (json_data == NULL)
-    {
+    cJSON *json = cJSON_Parse(data);
+    if (!json) {
+        printf("Erro ao fazer parsing do JSON\n");
+        free(data);
         return;
     }
 
-    // Simulação de parsing manual de JSON
-    char *ptr = strtok(json_data, "{\":,[]}");
-    CIN pessoa;
-
-    while (ptr != NULL)
-    {
-        if (strcmp(ptr, "nome") == 0)
-        {
-            ptr = strtok(NULL, "{\":,[]}");
-            strncpy(pessoa.nome, ptr, sizeof(pessoa.nome) - 1);
-            pessoa.nome[sizeof(pessoa.nome) - 1] = '\0';
-        }
-        else if (strcmp(ptr, "data_nasc") == 0)
-        {
-            ptr = strtok(NULL, "{\":,[]}");
-            parseDate(ptr, pessoa.data);
-        }
-        else if (strcmp(ptr, "rg") == 0)
-        {
-            ptr = strtok(NULL, "{\":,[]}");
-            pessoa.registros_emetidos[0].rg = atoi(ptr);
-        }
-        else if (strcmp(ptr, "cidade") == 0)
-        {
-            ptr = strtok(NULL, "{\":,[]}");
-            strncpy(pessoa.registros_emetidos[0].cidade, ptr, sizeof(pessoa.registros_emetidos[0].cidade) - 1);
-            pessoa.registros_emetidos[0].cidade[sizeof(pessoa.registros_emetidos[0].cidade) - 1] = '\0';
-        }
-        else if (strcmp(ptr, "estado") == 0)
-        {
-            ptr = strtok(NULL, "{\":,[]}");
-            strncpy(pessoa.registros_emetidos[0].estado, ptr, sizeof(pessoa.registros_emetidos[0].estado) - 1);
-            pessoa.registros_emetidos[0].estado[sizeof(pessoa.registros_emetidos[0].estado) - 1] = '\0';
-        }
-        else if (strcmp(ptr, "cpf") == 0)
-        {
-            ptr = strtok(NULL, "{\":,[]}");
-            pessoa.registro = atol(ptr);
-            // Adiciona o CIN à tabela de dispersão e aos estados
-            addCIN(tabela, pessoa);
-        }
-
-        ptr = strtok(NULL, "{\":,[]}");
+    cJSON *cidadaos = cJSON_GetObjectItem(json, "cidadãos");
+    if (!cidadaos) {
+        printf("Erro ao encontrar o item 'cidadaos' no JSON\n");
+        cJSON_Delete(json);
+        free(data);
+        return;
     }
 
-    free(json_data);
-}
+    cJSON *cidadao = NULL;
+    cJSON_ArrayForEach(cidadao, cidadaos) {
+        CIN pessoa;
+        cJSON *nome = cJSON_GetObjectItem(cidadao, "nome");
+        cJSON *cpf = cJSON_GetObjectItem(cidadao, "cpf");
+        cJSON *rg = cJSON_GetObjectItem(cidadao, "rg");
+        cJSON *data_nasc = cJSON_GetObjectItem(cidadao, "data_nasc");
+        cJSON *naturalidade = cJSON_GetObjectItem(cidadao, "naturalidade");
 
-void salvarDadosTxt(No *tabela[], const char *filename)
-{
+        pessoa.registros_emitidos = malloc(sizeof(Naturalidade));
+        if (pessoa.registros_emitidos == NULL) {
+            printf("Erro ao alocar memória para Naturalidade\n");
+            continue;
+        }
+
+        strcpy(pessoa.nome, nome->valuestring);
+        strcpy(pessoa.registro, cpf->valuestring);
+        sscanf(data_nasc->valuestring, "%d/%d/%d", &pessoa.data[0], &pessoa.data[1], &pessoa.data[2]);
+        strcpy(pessoa.registros_emitidos->rg, rg->valuestring);
+        strcpy(pessoa.registros_emitidos->cidade, cJSON_GetObjectItem(naturalidade, "cidade")->valuestring);
+        strcpy(pessoa.registros_emitidos->estado, cJSON_GetObjectItem(naturalidade, "estado")->valuestring);
+
+        insere_tabela(tabela, pessoa);
+    }
+
+    cJSON_Delete(json);
+    free(data);
+}   
+
+
+void salvarDados(No tabela[TAM], const char *filename) {
     FILE *file = fopen(filename, "w");
-    if (file == NULL)
-    {
-        perror("Error opening file");
+    if (!file) {
+        perror("Erro ao abrir o arquivo");
         return;
     }
 
-    for (int i = 0; i < TAM; i++)
-    {
-        No *p = tabela[i]->prox;
-        while (p != NULL)
-        {
-            fprintf(file, "Num Registro: %ld\n", p->cin.registro);
-            fprintf(file, "Nome: %s\n", p->cin.nome);
-            fprintf(file, "Data de Nascimento: %d/%d/%d\n", p->cin.data[0], p->cin.data[1], p->cin.data[2]);
-            fprintf(file, "Naturalidade: %s, %s\n", p->cin.registros_emetidos[0].cidade, p->cin.registros_emetidos[0].estado);
-            fprintf(file, "RG: %d\n", p->cin.registros_emetidos[0].rg);
-            fprintf(file, "\n");
+    fprintf(file, "{\n\t\"cidadãos\": [\n");
+    for (int i = 0; i < TAM; i++) {
+        No *p = tabela[i].prox;
+        while (p) {
+            fprintf(file, "\t\t{\n");
+            fprintf(file, "\t\t\t\"nome\": \"%s\",\n", p->cin.nome);
+            fprintf(file, "\t\t\t\"cpf\": \"%s\",\n", p->cin.registro);
+            fprintf(file, "\t\t\t\"rg\": \"%s\",\n", p->cin.registros_emitidos->rg);
+            fprintf(file, "\t\t\t\"data_nasc\": \"%02d/%02d/%04d\",\n", p->cin.data[0], p->cin.data[1], p->cin.data[2]);
+            fprintf(file, "\t\t\t\"naturalidade\": {\n");
+            fprintf(file, "\t\t\t\t\"cidade\": \"%s\",\n", p->cin.registros_emitidos->cidade);
+            fprintf(file, "\t\t\t\t\"estado\": \"%s\"\n", p->cin.registros_emitidos->estado);
+            fprintf(file, "\t\t\t}\n");
+            fprintf(file, "\t\t}%s\n", (p->prox) ? "," : "");
             p = p->prox;
         }
     }
+    fprintf(file, "\t]\n}\n");
 
     fclose(file);
 }
 
-void carregarDadosTxt(No *tabela[], const char *filename)
+void imprimir_relatorio_em_arquivo(Estado relatorio[], const char *filename)
 {
-    printf("Entrou!\n");
-    FILE *file = fopen(filename, "r");
-    if (file == NULL)
+    int i, j;
+    FILE *file = fopen(filename, "w");
+    if (!file)
     {
-        perror("Error opening file");
+        perror("Erro ao abrir o arquivo");
         return;
     }
 
-    CIN pessoa;
-    memset(&pessoa, 0, sizeof(CIN));
-    char line[1024];
-
-    while (fgets(line, sizeof(line), file) != NULL)
+    No *p;
+    CIN cin;
+    for (i = 0; i < TAM_ESTADO; i++)
     {
-        if (strncmp(line, "Num Registro: ", 14) == 0)
+        for (j = 0; j < TAM_ALFABETO; j++)
         {
-            sscanf(line, "Num Registro: %ld", &pessoa.registro);
-        }
-        else if (strncmp(line, "Nome: ", 6) == 0)
-        {
-            sscanf(line, "Nome: %[^\n]", pessoa.nome);
-        }
-        else if (strncmp(line, "Data de Nascimento: ", 20) == 0)
-        {
-            sscanf(line, "Data de Nascimento: %d/%d/%d", &pessoa.data[0], &pessoa.data[1], &pessoa.data[2]);
-        }
-        else if (strncmp(line, "Naturalidade: ", 14) == 0)
-        {
-            sscanf(line, "Naturalidade: %[^,], %s", pessoa.registros_emetidos[0].cidade, pessoa.registros_emetidos[0].estado);
-        }
-        else if (strncmp(line, "RG: ", 4) == 0)
-        {
-            sscanf(line, "RG: %d", &pessoa.registros_emetidos[0].rg);
-        }
+            p = relatorio[i].tabela[j].prox;
+            if(p){
+                fprintf(file, "{\"uf\": \"%s\",\n \"cidadãos\": [", p->cin.registros_emitidos->estado);
+                while (p)
+                {
+                    cin = p->cin;
+                    fprintf(file, "\n\t{\n\t\"nome\": \"%s\",\n\t\"cpf\": \"%s\",\n\t\"rg\": \"%s\",\n\t\"data_nasc\": \"%d/%d/%d\",\n\t\"naturalidade\":{\n\t\t\"cidade\": \"%s\",\n\t\t\"estado\": \"%s\"\n\t},",
+                            cin.nome,
+                            cin.registro,
+                            cin.registros_emitidos->rg,
+                            cin.data[0],
+                            cin.data[1],
+                            cin.data[2],
+                            cin.registros_emitidos->cidade,
+                            cin.registros_emitidos->estado);
 
-        if (line[0] == '\n' || line[0] == '\r')
-        {
-            if (pessoa.nome[0] != '\0')
-            {
-                addCIN(tabela, pessoa);
-                memset(&pessoa, 0, sizeof(CIN));
+                    if(p->prox && strcmp(p->prox->cin.registros_emitidos->estado, p->cin.registros_emitidos->estado) != 0){
+                        fprintf(file, "\n\t]\n}\n{\"uf\": \"%s\",\n \"cidadãos\": [", p->prox->cin.registros_emitidos->estado);
+                    }
+                    p = p->prox;
+                }
+                fprintf(file, "\n\t]\n}");  
             }
         }
-    }
-
-    if (pessoa.nome[0] != '\0')
-    {
-        addCIN(tabela, pessoa);
-        printf("adicionar!\n");
     }
 
     fclose(file);

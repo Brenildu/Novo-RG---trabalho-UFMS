@@ -3,8 +3,6 @@
 
 #include "estrutura.h"
 
-void teste3();
-
 int menuPrincipal();
 
 void menu1(char *cpf);

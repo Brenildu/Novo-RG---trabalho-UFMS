@@ -3,16 +3,9 @@
 
 #include "hash.h"
 
-char *readFile(const char *filename);
+void carregarDados(No tabela[TAM], const char *filename);
 
-void parseDate(const char *str, int data[3]);
+void salvarDados(No tabela[], const char *filename);
 
-void addCIN(No *tabela[], CIN pessoa);
-
-void parseJSON(const char *filename, No *tabela[]);
-
-void salvarDadosTxt(No *tabela[], const char *filename);
-
-void carregarDadosTxt(No *tabela[], const char *filename);
-
+void imprimir_relatorio_em_arquivo(Estado relatorio[], const char *filename);
 #endif

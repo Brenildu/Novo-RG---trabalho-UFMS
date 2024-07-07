@@ -1,9 +1,5 @@
 #include "menu.h"
 
-void teste3(){
-    printf("Passou 3!!\n");
-}
-
 int menuPrincipal()
 {
     int opcao = -1;

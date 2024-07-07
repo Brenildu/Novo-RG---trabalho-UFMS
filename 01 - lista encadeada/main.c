@@ -23,8 +23,10 @@ double stopTimer(clock_t *start, clock_t *end)
     return elapsed;
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
+int main(int argc, char *argv[])
+{
+    if (argc != 2)
+    {
         printf("Uso: %s <nome_do_arquivo_json>\n", argv[0]);
         return 1;
     }
@@ -42,50 +44,55 @@ int main(int argc, char *argv[]) {
     double elapsed = stopTimer(&tstart, &tend);
     printf("\n-----------\nCarregar dados\nTempo de execucao : %.3f segundos\n", elapsed);
 
-    do {
+    do
+    {
         op = menuPrincipal();
 
-        switch (op) {
-            case 1:
-                menu1(cpf);
-                printf("CPF: %s\n", cpf);
+        switch (op)
+        {
+        case 1:
+            menu1(cpf);
+            printf("CPF: %s\n", cpf);
 
-                startTimer(&tstart);
-                busca = busca_cin(lista, cpf);
+            startTimer(&tstart);
+            busca = busca_cin(lista, cpf);
 
-                elapsed = stopTimer(&tstart, &tend);
+            elapsed = stopTimer(&tstart, &tend);
 
-                if (busca) {
-                    imprimir_cin(*busca);
-                    printf("A Busca foi um sucesso\n");
-                } else {
-                    printf("CPF nao encontrado\n");
-                }
+            if (busca)
+            {
+                imprimir_cin(*busca);
+                printf("A Busca foi um sucesso\n");
+            }
+            else
+            {
+                printf("CPF nao encontrado\n");
+            }
 
-                printf("Tempo de execucao: %.3f segundos\n\n", elapsed);
-                break;
+            printf("Tempo de execucao: %.3f segundos\n\n", elapsed);
+            break;
 
-            case 2:
-                menu2(&anoInicial, &anoFinal);
-                printf("Relatorio de faixa etaria de pessoas que nascem entre: %d e %d\n", anoInicial, anoFinal);
+        case 2:
+            menu2(&anoInicial, &anoFinal);
+            printf("Relatorio de faixa etaria de pessoas que nascem entre: %d e %d\n", anoInicial, anoFinal);
 
-                startTimer(&tstart);
+            startTimer(&tstart);
 
-                relatorio = gerar_relatorio(lista, anoInicial, anoFinal);
-                imprimir_relatorio_em_arquivo(relatorio, "relatorio.txt");
-                deleta_lista(relatorio); // Exclui o relatório gerado
+            relatorio = gerar_relatorio(lista, anoInicial, anoFinal);
+            imprimir_relatorio_em_arquivo(relatorio, "relatorio.txt");
+            deleta_lista(relatorio); // Exclui o relatório gerado
 
-                elapsed = stopTimer(&tstart, &tend);
-                printf("Tempo de execucao: %.3f segundos\n\n", elapsed);
-                break;
+            elapsed = stopTimer(&tstart, &tend);
+            printf("Tempo de execucao: %.3f segundos\n\n", elapsed);
+            break;
 
-            case 3:
-                printf("Finalizando programa!!\n\n");
-                break;
+        case 3:
+            printf("Finalizando programa!!\n\n");
+            break;
 
-            default:
-                printf("Verifique se digitou corretamente, Operacao Invalida!!\n\n");
-                break;
+        default:
+            printf("Verifique se digitou corretamente, Operacao Invalida!!\n\n");
+            break;
         }
 
     } while (op != 3);
