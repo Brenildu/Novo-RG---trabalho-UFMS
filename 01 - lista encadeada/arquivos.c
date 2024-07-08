@@ -48,12 +48,18 @@ void carregarDados(CIN **lista, const char *filename)
         cJSON *data_nasc = cJSON_GetObjectItem(cidadao, "data_nasc");
         cJSON *naturalidade = cJSON_GetObjectItem(cidadao, "naturalidade");
 
+        pessoa.registros_emitidos = malloc(sizeof(Naturalidade));
+        if (pessoa.registros_emitidos == NULL) {
+            printf("Erro ao alocar memória para Naturalidade\n");
+            continue;
+        }
+
         strcpy(pessoa.nome, nome->valuestring);
         strcpy(pessoa.registro, cpf->valuestring);
         sscanf(data_nasc->valuestring, "%d/%d/%d", &pessoa.data[0], &pessoa.data[1], &pessoa.data[2]);
-        strcpy(pessoa.registros_emitidos[0].rg, rg->valuestring);
-        strcpy(pessoa.registros_emitidos[0].cidade, cJSON_GetObjectItem(naturalidade, "cidade")->valuestring);
-        strcpy(pessoa.registros_emitidos[0].estado, cJSON_GetObjectItem(naturalidade, "estado")->valuestring);
+        strcpy(pessoa.registros_emitidos->rg, rg->valuestring);
+        strcpy(pessoa.registros_emitidos->cidade, cJSON_GetObjectItem(naturalidade, "cidade")->valuestring);
+        strcpy(pessoa.registros_emitidos->estado, cJSON_GetObjectItem(naturalidade, "estado")->valuestring);
 
         inserir_no(lista, pessoa);
     }
@@ -77,9 +83,9 @@ void salvarDados(CIN *lista, const char *filename)
         fprintf(file, "Nome: %s\n", p->nome);
         fprintf(file, "CPF: %s\n", p->registro);
         fprintf(file, "Data de Nascimento: %02d/%02d/%04d\n", p->data[0], p->data[1], p->data[2]);
-        fprintf(file, "Cidade: %s\n", p->registros_emitidos[0].cidade);
-        fprintf(file, "Estado: %s\n", p->registros_emitidos[0].estado);
-        fprintf(file, "RG: %s\n\n", p->registros_emitidos[0].rg);
+        fprintf(file, "Cidade: %s\n", p->registros_emitidos->cidade);
+        fprintf(file, "Estado: %s\n", p->registros_emitidos->estado);
+        fprintf(file, "RG: %s\n\n", p->registros_emitidos->rg);
         p = p->prox;
     }
 
@@ -97,7 +103,7 @@ void imprimir_relatorio_em_arquivo(CIN *relatorio, const char *filename)
 
     CIN *p = relatorio, cin;
     if(p){
-        fprintf(file, "{\"uf\": \"%s\",\n \"cidadãos\": [", (*p).registros_emitidos[0].estado);
+        fprintf(file, "{\"uf\": \"%s\",\n \"cidadãos\": [", (*p).registros_emitidos->estado);
     }
     while (p)
     {
@@ -105,15 +111,15 @@ void imprimir_relatorio_em_arquivo(CIN *relatorio, const char *filename)
         fprintf(file, "\n\t{\n\t\"nome\": \"%s\",\n\t\"cpf\": \"%s\",\n\t\"rg\": \"%s\",\n\t\"data_nasc\": \"%d/%d/%d\",\n\t\"naturalidade\":{\n\t\t\"cidade\": \"%s\",\n\t\t\"estado\": \"%s\"\n\t},",
                 cin.nome,
                 cin.registro,
-                cin.registros_emitidos[0].rg,
+                cin.registros_emitidos->rg,
                 cin.data[0],
                 cin.data[1],
                 cin.data[2],
-                cin.registros_emitidos[0].cidade,
-                cin.registros_emitidos[0].estado);
+                cin.registros_emitidos->cidade,
+                cin.registros_emitidos->estado);
 
-        if(p->prox && strcmp(p->prox->registros_emitidos[0].estado, p->registros_emitidos[0].estado) != 0){
-            fprintf(file, "\n\t]\n}\n{\"uf\": \"%s\",\n \"cidadãos\": [", p->prox->registros_emitidos[0].estado);
+        if(p->prox && strcmp(p->prox->registros_emitidos->estado, p->registros_emitidos->estado) != 0){
+            fprintf(file, "\n\t]\n}\n{\"uf\": \"%s\",\n \"cidadãos\": [", p->prox->registros_emitidos->estado);
         }
         p = p->prox;
     }

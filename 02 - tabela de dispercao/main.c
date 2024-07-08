@@ -9,6 +9,8 @@
 /*gcc -Wall -Wextra -g3 main.c hash.c menu.c arquivos.c cJSON.c -o output\main.exe
 
 ./output/main.exe nome_do_arquivo.json
+
+O arquivo precisa estar no mesmo diretorio
 */
 
 void startTimer(clock_t *start)

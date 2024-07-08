@@ -17,7 +17,7 @@ typedef struct CIN
     char registro[12];
     char nome[70];
     int data[3];
-    Naturalidade registros_emitidos[27];
+    Naturalidade *registros_emitidos;
     struct CIN *prox;
 } CIN;
 

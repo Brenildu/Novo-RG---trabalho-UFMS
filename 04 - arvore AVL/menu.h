@@ -1,11 +1,11 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include "arvoreAVL.h"
+#include "estrutura.h"
 
-void menuPrincipal();
+int menuPrincipal();
 
-long menu1();
+void menu1(char *cpf);
 
 void menu2(int *anoInicio, int *anoFinal);
 

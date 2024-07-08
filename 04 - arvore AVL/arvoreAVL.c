@@ -1,67 +1,37 @@
+// arvoreAVL.c
 #include "arvoreAVL.h"
 
-Node *novo_node(CIN cin)
-{
+// Função para criar um novo node
+Node *criar_node(CIN cin) {
     Node *novo = (Node *)malloc(sizeof(Node));
-
-    if (novo)
-    {
-        novo->cin = cin;
-        novo->dir = NULL;
-        novo->esq = NULL;
-        novo->altura = 1; // novo nó é inicialmente adicionado na folha
+    if (!novo) {
+        printf("Falha ao alocar memória.\n");
+        return NULL;
     }
-
+    novo->cin = cin;
+    novo->dir = NULL;
+    novo->esq = NULL;
+    novo->ancestral = NULL; // Inicializa o ponteiro ancestral como NULL
+    novo->fb = 0; // Inicialmente, o fator de balanceamento é 0
     return novo;
 }
 
-Estado *novo_estado(int valor_sigla)
-{
-    Estado *novo_estado = (Estado *)malloc(sizeof(Estado));
-
-    if (novo_estado)
-    {
-        novo_estado->node = NULL;
-        novo_estado->dir = NULL;
-        novo_estado->esq = NULL;
-        novo_estado->sigla = valor_sigla;
-    }
-    return novo_estado;
-}
-
-const char *siglas_estados[] = {
-    "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA",
-    "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN",
-    "RO", "RR", "RS", "SC", "SE", "SP", "TO"};
-
-// Obter o valor correspondente ao estado
-int valor_estado(const char *sigla)
-{
-    for (int i = 0; i < 27; i++)
-    {
-        if (strcmp(siglas_estados[i], sigla) == 0)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
-// Funções auxiliares para AVL
-int altura(Node *N)
-{
+// Função auxiliar para obter a altura de um nó
+int altura(Node *N) {
     if (N == NULL)
         return 0;
-    return N->altura;
+    return N->fb;
 }
 
-int max(int a, int b)
-{
-    return (a > b) ? a : b;
+// Função auxiliar para obter o fator de balanceamento de um nó
+int getBalance(Node *N) {
+    if (N == NULL)
+        return 0;
+    return altura(N->esq) - altura(N->dir);
 }
 
-Node *rotacao_direita(Node *y)
-{
+// Função auxiliar para rotacionar à direita
+Node *rotacao_direita(Node *y) {
     Node *x = y->esq;
     Node *T2 = x->dir;
 
@@ -69,16 +39,21 @@ Node *rotacao_direita(Node *y)
     x->dir = y;
     y->esq = T2;
 
-    // Atualiza alturas
-    y->altura = max(altura(y->esq), altura(y->dir)) + 1;
-    x->altura = max(altura(x->esq), altura(x->dir)) + 1;
+    // Atualiza os ponteiros ancestrais
+    if (T2 != NULL)
+        T2->ancestral = y;
+    x->ancestral = y->ancestral;
+    y->ancestral = x;
 
-    // Retorna nova raiz
+    // Atualiza alturas
+    y->fb = max(altura(y->esq), altura(y->dir)) + 1;
+    x->fb = max(altura(x->esq), altura(x->dir)) + 1;
+
     return x;
 }
 
-Node *rotacao_esquerda(Node *x)
-{
+// Função auxiliar para rotacionar à esquerda
+Node *rotacao_esquerda(Node *x) {
     Node *y = x->dir;
     Node *T2 = y->esq;
 
@@ -86,59 +61,42 @@ Node *rotacao_esquerda(Node *x)
     y->esq = x;
     x->dir = T2;
 
-    // Atualiza alturas
-    x->altura = max(altura(x->esq), altura(x->dir)) + 1;
-    y->altura = max(altura(y->esq), altura(y->dir)) + 1;
+    // Atualiza os ponteiros ancestrais
+    if (T2 != NULL)
+        T2->ancestral = x;
+    y->ancestral = x->ancestral;
+    x->ancestral = y;
 
-    // Retorna nova raiz
+    // Atualiza alturas
+    x->fb = max(altura(x->esq), altura(x->dir)) + 1;
+    y->fb = max(altura(y->esq), altura(y->dir)) + 1;
+
     return y;
 }
 
-int getBalance(Node *N)
-{
-    if (N == NULL)
-        return 0;
-    return altura(N->esq) - altura(N->dir);
-}
-
-Node *inserir_avl(Node *node, CIN cin)
-{
-    if (node == NULL)
-        return novo_node(cin);
-
-    if (cin.registro < node->cin.registro)
-        node->esq = inserir_avl(node->esq, cin);
-    else if (cin.registro > node->cin.registro)
-        node->dir = inserir_avl(node->dir, cin);
-    else
-        return node;
-
-    // Atualiza altura deste ancestral node
-    node->altura = 1 + max(altura(node->esq), altura(node->dir));
-
-    // Obtém o fator de balanceamento deste ancestral
+// Função para atualizar o balanceamento de um node e suas subárvores
+Node *atualiza_balanceamento(Node *node) {
+    node->fb = 1 + max(altura(node->esq), altura(node->dir));
     int balance = getBalance(node);
 
     // Se o nó não está balanceado, então existem 4 casos
 
     // Caso Esquerda Esquerda
-    if (balance > 1 && cin.registro < node->esq->cin.registro)
+    if (balance > 1 && getBalance(node->esq) >= 0)
         return rotacao_direita(node);
 
     // Caso Direita Direita
-    if (balance < -1 && cin.registro > node->dir->cin.registro)
+    if (balance < -1 && getBalance(node->dir) <= 0)
         return rotacao_esquerda(node);
 
     // Caso Esquerda Direita
-    if (balance > 1 && cin.registro > node->esq->cin.registro)
-    {
+    if (balance > 1 && getBalance(node->esq) < 0) {
         node->esq = rotacao_esquerda(node->esq);
         return rotacao_direita(node);
     }
 
     // Caso Direita Esquerda
-    if (balance < -1 && cin.registro < node->dir->cin.registro)
-    {
+    if (balance < -1 && getBalance(node->dir) > 0) {
         node->dir = rotacao_direita(node->dir);
         return rotacao_esquerda(node);
     }
@@ -146,242 +104,182 @@ Node *inserir_avl(Node *node, CIN cin)
     return node;
 }
 
-Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior)
-{
-    if (estado == NULL)
-        return anterior;
-
-    if (estado->sigla == valor_sigla)
-        return estado;
-    else if (valor_sigla > estado->sigla)
-        return busca_estado(estado->dir, valor_sigla, estado);
-    else
-        return busca_estado(estado->esq, valor_sigla, estado);
-}
-
-Estado *popular_estados()
-{
-    Estado *raiz = novo_estado(13);
-
-    if (raiz)
-    {
-        for (int i = 0; i < 27; i++)
-        {
-            Estado *novo = novo_estado(i);
-            raiz = inserir_estado_avl(raiz, novo);
-        }
+// Função para inserir um node na árvore AVL
+Node* insere_avl(Node *node, CIN cin, Node *ancestral) {
+    if (node == NULL) {
+        Node *novo = criar_node(cin);
+        novo->ancestral = ancestral; // Define o ancestral do novo nó
+        return novo;
     }
 
+    if (strcmp(cin.registro, node->cin.registro) < 0) {
+        node->esq = insere_avl(node->esq, cin, node);
+    } else if (strcmp(cin.registro, node->cin.registro) > 0) {
+        node->dir = insere_avl(node->dir, cin, node);
+    } else {
+        printf("Registro duplicado: %s\n", cin.registro);
+        return node;
+    }
+
+    // Atualiza altura e balanceamento
+    node->fb = 1 + max(altura(node->esq), altura(node->dir));
+    return atualiza_balanceamento(node);
+}
+
+// Função para buscar um node na árvore AVL
+Node *busca_cin(Node *raiz, char registro[12]) {
+    if (raiz == NULL || strcmp(raiz->cin.registro, registro) == 0)
+        return raiz;
+
+    if (strcmp(registro, raiz->cin.registro) > 0)
+        return busca_cin(raiz->dir, registro);
+    else
+        return busca_cin(raiz->esq, registro);
+}
+
+// Função para imprimir os dados de um CIN
+void imprimir_cin(CIN cin) {
+    printf("\"nome\": \"%s\",\n\"cpf\": \"%s\",\n\"rg\": \"%s\",\n\"data_nasc\": \"%d/%d/%d\",\n\"naturalidade\":{\n\t\"cidade\": \"%s\",\n\t\"estado\": \"%s\"\n}\n",
+           cin.nome,
+           cin.registro,
+           cin.registros_emitidos->rg,
+           cin.data[0],
+           cin.data[1],
+           cin.data[2],
+           cin.registros_emitidos->cidade,
+           cin.registros_emitidos->estado);
+}
+
+// Função para criar um novo estado
+Estado *novo_estado(const char *sigla) {
+    Estado *novo_estado = (Estado *)malloc(sizeof(Estado));
+    if (novo_estado) {
+        novo_estado->node = NULL;
+        novo_estado->esq = NULL;
+        novo_estado->dir = NULL;
+        strcpy(novo_estado->sigla, sigla);
+    }
+    return novo_estado;
+}
+
+// Função para inserir um estado na árvore
+Estado *inserir_estado(Estado *raiz, const char *sigla) {
+    if (raiz == NULL) {
+        return novo_estado(sigla);
+    }
+    if (strcmp(sigla, raiz->sigla) < 0) {
+        raiz->esq = inserir_estado(raiz->esq, sigla);
+    } else {
+        raiz->dir = inserir_estado(raiz->dir, sigla);
+    }
     return raiz;
 }
 
-Estado *inserir_estado_avl(Estado *raiz, Estado *estado)
-{
-    if (raiz == NULL)
-        return estado;
+const char *siglas_estados[] = {
+    "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA",
+    "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN",
+    "RO", "RR", "RS", "SC", "SE", "SP", "TO"
+};
 
-    if (estado->sigla < raiz->sigla)
-        raiz->esq = inserir_estado_avl(raiz->esq, estado);
-    else if (estado->sigla > raiz->sigla)
-        raiz->dir = inserir_estado_avl(raiz->dir, estado);
-    else
-        return raiz;
-
-    return raiz;
-}
-
-Node *busca_cin(Node *raiz, long registro, Node *anterior)
-{
-    if (raiz == NULL)
-        return anterior;
-
-    if (raiz->cin.registro == registro)
-        return raiz;
-
-    if (registro > raiz->cin.registro)
-        return busca_cin(raiz->dir, registro, raiz);
-    else
-        return busca_cin(raiz->esq, registro, raiz);
-}
-
-Node *busca_nome(Node *raiz, const char *nome, Node *anterior)
-{
-    if (raiz == NULL)
-        return anterior;
-
-    if (strcmp(raiz->cin.nome, nome) == 0)
-        return raiz;
-
-    if (strcmp(nome, raiz->cin.nome) > 0)
-        return busca_nome(raiz->dir, nome, raiz);
-    else
-        return busca_nome(raiz->esq, nome, raiz);
-}
-
-void inserir_cin(Node **node, CIN cin)
-{
-    *node = inserir_avl(*node, cin);
-}
-
-void inserir_nome(Estado *estados, CIN cin)
-{
-    int valor_sigla = valor_estado(cin.registros_emetidos[0].estado);
-    Estado *estado = busca_estado(estados, valor_sigla, NULL);
-
-    if (estado == NULL)
-    {
-        printf("Estado não encontrado para o registro: %ld\n", cin.registro);
-        return;
-    }
-
-    estado->node = inserir_avl(estado->node, cin);
-}
-
-Node *maior_ValorEsq(Node *no)
-{
-    Node *maior = no->esq;
-
-    while (maior && maior->dir != NULL)
-        maior = maior->dir;
-
-    return maior;
-}
-
-long remover_cin(Node **raiz, Estado *estados, long registro)
-{
-    Node *no_removido = NULL;
-    long reg_removido = -1;
-
-    *raiz = remover_avl(*raiz, registro, &no_removido);
-
-    if (no_removido)
-    {
-        reg_removido = no_removido->cin.registro;
-        remover_cin_estado(estados, no_removido);
-        free(no_removido);
-    }
-
-    return reg_removido;
-}
-
-Node *remover_avl(Node *root, long registro, Node **no_removido)
-{
-    if (root == NULL)
-        return root;
-
-    if (registro < root->cin.registro)
-        root->esq = remover_avl(root->esq, registro, no_removido);
-    else if (registro > root->cin.registro)
-        root->dir = remover_avl(root->dir, registro, no_removido);
-    else
-    {
-        *no_removido = root;
-
-        if ((root->esq == NULL) || (root->dir == NULL))
-        {
-            Node *temp = root->esq ? root->esq : root->dir;
-
-            if (temp == NULL)
-            {
-                temp = root;
-                root = NULL;
-            }
-            else
-                *root = *temp;
-
-            free(temp);
-        }
-        else
-        {
-            Node *temp = maior_ValorEsq(root);
-
-            root->cin = temp->cin;
-
-            root->esq = remover_avl(root->esq, temp->cin.registro, no_removido);
-        }
-    }
-
-    if (root == NULL)
-        return root;
-
-    root->altura = 1 + max(altura(root->esq), altura(root->dir));
-
-    int balance = getBalance(root);
-
-    if (balance > 1 && getBalance(root->esq) >= 0)
-        return rotacao_direita(root);
-
-    if (balance > 1 && getBalance(root->esq) < 0)
-    {
-        root->esq = rotacao_esquerda(root->esq);
-        return rotacao_direita(root);
-    }
-
-    if (balance < -1 && getBalance(root->dir) <= 0)
-        return rotacao_esquerda(root);
-
-    if (balance < -1 && getBalance(root->dir) > 0)
-    {
-        root->dir = rotacao_direita(root->dir);
-        return rotacao_esquerda(root);
-    }
-
-    return root;
-}
-
-void remover_cin_estado(Estado *estados, Node *no_removido)
-{
-    int valor_sigla = valor_estado(no_removido->cin.registros_emetidos[0].estado);
-    Estado *estado = busca_estado(estados, valor_sigla, NULL);
-
-    if (estado == NULL)
+// Função para criar uma árvore balanceada de estados
+void criar_arvore_estados(Estado **raiz, int inicio, int fim) {
+    if (inicio > fim)
         return;
 
-    estado->node = remover_avl(estado->node, no_removido->cin.registro, &no_removido);
+    int meio = (inicio + fim) / 2;
+    *raiz = inserir_estado(*raiz, siglas_estados[meio]);
+
+    criar_arvore_estados(raiz, inicio, meio - 1);
+    criar_arvore_estados(raiz, meio + 1, fim);
 }
 
-void imprimir_cins_idade(Node *arvore, int anoInicial, int anoFinal)
+// Função para inserir um node na árvore em ordem alfabética
+Node *inserir_arvore_ordem_alfabetica(Node *arvore, CIN pessoa, Node *ancestral) {
+    if (arvore == NULL) {
+        Node *novo = criar_node(pessoa);
+        novo->ancestral = ancestral; // Define o ancestral do novo nó
+        return novo;
+    }
+
+    if (strcmp(pessoa.nome, arvore->cin.nome) < 0)
+        arvore->esq = inserir_arvore_ordem_alfabetica(arvore->esq, pessoa, arvore);
+    else
+        arvore->dir = inserir_arvore_ordem_alfabetica(arvore->dir, pessoa, arvore);
+
+    // Atualiza altura e verifica balanceamento a partir do nó inserido até a raiz
+    return atualiza_balanceamento(arvore);
+}
+
+
+// Função para buscar um estado na árvore de estados
+Estado *busca_estado(Estado *raiz, const char *sigla) {
+    if (raiz == NULL || strcmp(raiz->sigla, sigla) == 0)
+        return raiz;
+
+    if (strcmp(sigla, raiz->sigla) < 0)
+        return busca_estado(raiz->esq, sigla);
+    else
+        return busca_estado(raiz->dir, sigla);
+}
+
+
+void insere_node_estado(Estado *estados, CIN pessoa) {
+    Estado *busca = busca_estado(estados, pessoa.registros_emitidos->estado);
+
+    if (busca) {
+        busca->node = inserir_arvore_ordem_alfabetica(busca->node, pessoa, NULL); // A raiz não tem ancestral
+    }
+}
+
+
+void gerar_relatorio(Estado *estados, Node *arvore, int anoInicial, int anoFinal)
 {
     if (arvore == NULL)
         return;
 
-    imprimir_cins_idade(arvore->esq, anoInicial, anoFinal);
-
     if (arvore->cin.data[2] >= anoInicial && arvore->cin.data[2] <= anoFinal)
-        imprimir_cin(arvore->cin);
-
-    imprimir_cins_idade(arvore->dir, anoInicial, anoFinal);
+    {
+        insere_node_estado(estados, arvore->cin);
+    }
+    gerar_relatorio(estados, arvore->esq, anoInicial, anoFinal);
+    gerar_relatorio(estados, arvore->dir, anoInicial, anoFinal);
 }
 
-void imprimir_cin(CIN cin)
+void deleta_naturalidade(Naturalidade *nat)
 {
-    printf("\"nome\": \"%s\",\n\"cpf\": \"%ld\",\n\"rg\": \"%d\",\n\"data_nasc\": \"%d/%d/%d\",\n\"naturalidade\":{\n\t\"cidade\": \"%s\",\n\t\"estado\": \"%s\"\n}\n",
-           cin.nome,
-           cin.registro,
-           cin.registros_emetidos[0].rg,
-           cin.data[0],
-           cin.data[1],
-           cin.data[2],
-           cin.registros_emetidos[0].cidade,
-           cin.registros_emetidos[0].estado);
-}
+    Naturalidade *aux, *remove;
 
-void relatorio(Estado *estados, int anoInicial, int anoFinal)
-{
-    if (estados == NULL)
-        return;
-
-    relatorio(estados->esq, anoInicial, anoFinal);
-    imprimir_cins_idade(estados->node, anoInicial, anoFinal);
-    relatorio(estados->dir, anoInicial, anoFinal);
+    aux = nat;
+    while (aux)
+    {
+        remove = aux;
+        aux = aux->prox;
+        free(remove);
+    }
 }
 
 void deleta_arvore(Node *arvore)
 {
-    if (arvore == NULL)
-        return;
+    if (arvore)
+    {
+        deleta_naturalidade(arvore->cin.registros_emitidos);
+        deleta_arvore(arvore->esq);
+        deleta_arvore(arvore->dir);
+        free(arvore);
+    }
+}
 
-    deleta_arvore(arvore->esq);
-    deleta_arvore(arvore->dir);
-    free(arvore);
+void deleta_estados(Estado *estados)
+{
+    if (estados)
+    {
+        deleta_estados(estados->esq);
+        deleta_estados(estados->dir);
+        free(estados);
+    }
+}
+
+int max(int a, int b)
+{
+    return (a > b) ? a : b;
 }

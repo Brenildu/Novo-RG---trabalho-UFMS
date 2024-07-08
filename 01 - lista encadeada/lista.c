@@ -42,12 +42,12 @@ void imprimir_cin(CIN cin)
     printf("\"nome\": \"%s\",\n\"cpf\": \"%s\",\n\"rg\": \"%s\",\n\"data_nasc\": \"%d/%d/%d\",\n\"naturalidade\":{\n\t\"cidade\": \"%s\",\n\t\"estado\": \"%s\"\n}\n",
            cin.nome,
            cin.registro,
-           cin.registros_emitidos[0].rg,
+           cin.registros_emitidos->rg,
            cin.data[0],
            cin.data[1],
            cin.data[2],
-           cin.registros_emitidos[0].cidade,
-           cin.registros_emitidos[0].estado);
+           cin.registros_emitidos->cidade,
+           cin.registros_emitidos->estado);
 }
 
 void insere_ordenado(CIN **lista, CIN pessoa)
@@ -62,16 +62,16 @@ void insere_ordenado(CIN **lista, CIN pessoa)
     CIN *q = NULL;
 
     // Encontra o ponto de inserção baseado no estado
-    while (p != NULL && strcmp(p->registros_emitidos[0].estado, pessoa.registros_emitidos[0].estado) < 0)
+    while (p != NULL && strcmp(p->registros_emitidos->estado, pessoa.registros_emitidos->estado) < 0)
     {
         q = p;
         p = p->prox;
     }
 
     // Se encontrou um estado igual, insere ordenado por nome
-    if (p != NULL && strcmp(p->registros_emitidos[0].estado, pessoa.registros_emitidos[0].estado) == 0)
+    if (p != NULL && strcmp(p->registros_emitidos->estado, pessoa.registros_emitidos->estado) == 0)
     {
-        while (p != NULL && strcmp(p->registros_emitidos[0].estado, pessoa.registros_emitidos[0].estado) == 0 && strcmp(p->nome, pessoa.nome) < 0)
+        while (p != NULL && strcmp(p->registros_emitidos->estado, pessoa.registros_emitidos->estado) == 0 && strcmp(p->nome, pessoa.nome) < 0)
         {
             q = p;
             p = p->prox;

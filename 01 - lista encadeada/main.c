@@ -9,6 +9,8 @@
 /*gcc -Wall -Wextra -g3 main.c lista.c menu.c arquivos.c cJSON.c -o output\main.exe
 
 ./output/main.exe (nome do arquivo)
+
+O arquivo precisa estar no mesmo diretorio
 */
 
 void startTimer(clock_t *start)
@@ -25,11 +27,13 @@ double stopTimer(clock_t *start, clock_t *end)
 
 int main(int argc, char *argv[])
 {
+    printf("Esta indo!");
     if (argc != 2)
     {
         printf("Uso: %s <nome_do_arquivo_json>\n", argv[0]);
         return 1;
     }
+    printf("Leu");
 
     const char *filename = argv[1];
     int op, anoInicial, anoFinal;

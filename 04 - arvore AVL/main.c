@@ -1,101 +1,114 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <time.h>
+#include "menu.h"
 #include "arvoreAVL.h"
 #include "arquivos.h"
-#include "menu.h"
 
-/*
-Compilação: gcc -o main.exe 
+/*gcc -Wall -Wextra -g3 main.c arvoreAVL.c menu.c arquivos.c cJSON.c -o output\main.exe
+
+./output/main.exe nome_do_arquivo.json
+
+O arquivo precisa estar no mesmo diretorio
 */
 
-void startTimer(struct timespec *start)
+void startTimer(clock_t *start)
 {
-	clock_gettime(CLOCK_MONOTONIC, start);
+    *start = clock();
 }
 
-double stopTimer(struct timespec *start, struct timespec *end)
+double stopTimer(clock_t *start, clock_t *end)
 {
-	clock_gettime(CLOCK_MONOTONIC, end);
-	double elapsed = (end->tv_sec - start->tv_sec) * 1e9; // segundos para nanosegundos
-	elapsed += (end->tv_nsec - start->tv_nsec);			  // nanosegundos
-	return elapsed;
+    *end = clock();
+    double elapsed = ((double)(*end - *start)) / CLOCKS_PER_SEC;
+    return elapsed;
 }
+
 
 int main(int argc, char *argv[])
 {
-	struct timespec tstart = {0, 0}, tend = {0, 0};
+    if (argc != 2)
+    {
+        printf("Uso: %s <nome_do_arquivo_json>\n", argv[0]);
+        return 1;
+    }
 
-	int op, anoInicio, anoFim;
-	long cpf;
-	Estado *estados = popular_estados(); // Árvore de estados
-	Node *cpfTree = NULL;				 // Árvore de CPFs
-	CIN cin_novo;
+    const char *filename = argv[1];
+    int op, anoInicial, anoFinal;
+    char cpf[12];
+    Node *arvoreAVL = NULL, *busca; // Inicializar a árvore como NULL
+    Estado *relatorio = NULL;
+    clock_t tstart, tend;
 
-	if (estados == NULL)
-	{
-		fprintf(stderr, "Erro ao popular a árvore de estados.\n");
-		return EXIT_FAILURE;
-	}
+    // Inicializar a árvore
+    printf("Arvore AVL inicializada.\n");
 
-	// Carregar dados existentes
-	carregarDadosTxt(cpfTree, estados, "dados.txt");
+    // Carrega os dados do arquivo JSON
+    startTimer(&tstart);
+    carregarDados(&arvoreAVL, filename);
+    double elapsed = stopTimer(&tstart, &tend);
+    printf("\n-----------\nCarregar dados\nTempo de execucao : %.3f segundos\n", elapsed);
+    do
+    {
+        op = menuPrincipal();
 
-	// Carregar dados dos arquivos JSON passados como argumentos
-	for (int i = 1; i < argc; i++)
-	{
-		printf("Processando arquivo: %s\n", argv[i]);
-		parseJSON(argv[i], estados, &cpfTree);
-	}
+        switch (op)
+        {
+        case 1:
+            menu1(cpf);
+            printf("CPF: %s\n", cpf);
 
-	do
-	{
-		op = menu();
+            startTimer(&tstart);
+            busca = busca_cin(arvoreAVL, cpf);
 
-		switch (op)
-		{
-		case 1:
-			cpf = menu1();
-			if (cpf == -1)
-			{
-				printf("Verifique se digitou certo o CPF, Operação Inválida!\n");
-			}
-			else
-			{
-				startTimer(&tstart);
-				Node *result = busca_cin(cpfTree, cpf, NULL);
-				if (result != NULL)
-				{
-					imprimir_cin(result->cin);
-				}
-				else
-				{
-					printf("CPF não encontrado.\n");
-				}
-				double elapsed = stopTimer(&tstart, &tend);
-				printf("Tempo de execução: %.3f segundos\n", elapsed / 1e9);
-			}
-			break;
+            elapsed = stopTimer(&tstart, &tend);
+            if (busca)
+            {
+                imprimir_cin(busca->cin);
+                printf("A Busca foi um sucesso\n");
+            }
+            else
+            {
+                printf("CPF nao encontrado\n");
+            }
 
-		case 2:
-			menu2(&anoInicio, &anoFim);
+            printf("Tempo de execucao: %.3f segundos\n\n", elapsed);
+            break;
 
-			startTimer(&tstart);
-			relatorio(estados, anoInicio, anoFim);
-			double elapsed = stopTimer(&tstart, &tend);
-			printf("Tempo de execução: %.3f segundos\n", elapsed / 1e9);
-			break;
+        case 2:
+            menu2(&anoInicial, &anoFinal);
+            printf("Relatorio de faixa etaria de pessoas que nascem entre: %d e %d\n", anoInicial, anoFinal);
 
-		case 3:
-			printf("Finalizando programa!\n");
-			salvarDadosTxt(cpfTree, estados, "dados.txt");
-			deleta_arvore(cpfTree);
-			deleta_arvore(estados);
-			break;
+            startTimer(&tstart);
+            criar_arvore_estados(&relatorio, 0, 26);
 
-		default:
-			printf("Verifique se digitou corretamente, Operação Inválida!\n");
-			break;
-		}
-	} while (op != 5);
+            gerar_relatorio(relatorio, arvoreAVL, anoInicial, anoFinal);
 
-	return 0;
+            imprimir_relatorio_em_arquivo(relatorio, "relatorio.txt");
+            deleta_estados(relatorio);
+
+            elapsed = stopTimer(&tstart, &tend);
+            printf("Tempo de execucao: %.3f segundos\n\n", elapsed);
+
+            break;
+
+        case 3:
+            printf("Finalizando programa!!\n\n");
+            break;
+
+        default:
+            printf("Verifique se digitou corretamente, Operacao Invalida!!\n\n");
+            break;
+        }
+
+    } while (op != 3);
+
+    // Salva os dados no arquivo TXT
+    salvarDadosEmArquivo(arvoreAVL, "saida.txt");
+
+    // Limpa a memória da árvore
+    deleta_arvore(arvoreAVL);
+
+    return 0;
 }

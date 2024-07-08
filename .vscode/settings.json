@@ -4,6 +4,7 @@
     "stdio.h": "c",
     "estrutura.h": "c",
     "lista.h": "c",
-    "string.h": "c"
+    "string.h": "c",
+    "arvoreavl.h": "c"
   }
 }
