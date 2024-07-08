@@ -1,14 +1,11 @@
 #include "menu.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-int menu()
+int menuPrincipal()
 {
     int opcao = -1;
-    printf("Olá, seja bem-vindo ao Cadastro Nova Carteira de Identidade Nacional\n\nPor favor, selecione a operação desejada:\n-----------------------\n");
-    printf("1 - Buscar por Número de Cadastro\n");
-    printf("2 - Gerar Relatório\n");
+    printf("\n\nMenu principal:\n-----------------------\n");
+    printf("1 - Buscar por Numero de Cadastro\n");
+    printf("2 - Gerar Relatorio\n");
     printf("3 - Sair\n----------------------\n");
     scanf("%d", &opcao);
 
@@ -19,24 +16,16 @@ int menu()
     return opcao;
 }
 
-long menu1()
+void menu1(char *cpf)
 {
-    long cpf;
-    printf("Busca por cpf cadastrados\n-------------------\n");
+    printf("\n-------------------\nBusca por cpf cadastrados\n-------------------\n");
     printf("\nDigite o cpf(apenas numeros) que deseja buscar: ");
-    scanf("%ld", &cpf);
-    if (cpf < 10000000000 || cpf > 99999999999)
-    {
-        cpf = -1;
-    }
-
-    return cpf;
+    scanf("%s", cpf);
 }
-
 
 void menu2(int *anoInicio, int *anoFinal)
 {
-    printf("Relatorio de faixa idade por estados\n-------------------\n");
+    printf("\n-------------------\nRelatorio de faixa idade por estados\n-------------------\n");
 
     printf("\nDigite o ano de inicio: ");
     scanf("%d", anoInicio);

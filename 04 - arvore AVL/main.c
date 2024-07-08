@@ -4,7 +4,7 @@
 #include "menu.h"
 
 /*
-Compilação: gcc -o main.exe *.c `pkg-config --cflags --libs gtk+-3.0` -export-dynamic
+Compilação: gcc -o main.exe 
 */
 
 void startTimer(struct timespec *start)

@@ -2,18 +2,14 @@
 #define ARQUIVOS_H
 
 #include "arvoreBinaria.h"
-#include <json-c/json.h>
 
-char *readFile(const char *filename);
+void carregarDados(Node **arvore, const char *filename);
 
-void parseDate(const char *str, int data[3]);
+void salvarDados(Node *arvore, FILE *file);
 
-void addCIN(Estado *estados, Node **cpfTree, CIN pessoa);
+void salvarDadosEmArquivo(Node *arvore, const char *filename);
 
-void parseJSON(const char *filename, Estado *estados, Node **cpfTree);
+void imprimir_estado(Estado *estado, FILE *file);
 
-void salvarDadosTxt(Node *cpfTree, Estado *estados, const char *filename);
-
-void carregarDadosTxt(Node **cpfTree, Estado *estados, const char *filename);
-
+void imprimir_relatorio_em_arquivo(Estado *relatorio, const char *filename);
 #endif

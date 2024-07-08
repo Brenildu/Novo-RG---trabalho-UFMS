@@ -57,7 +57,7 @@ void inserir_no(No **lista, CIN pessoa)
 {
 	No *novoNo = criar_no(pessoa);
 	if (novoNo)
-	{	
+	{
 		novoNo->prox = *lista;
 		*lista = novoNo;
 	}
@@ -197,11 +197,11 @@ int valor_estado(const char *sigla)
 // Inserir na lista em ordem alfabética
 void inserir_lista_ordem_alfabetica(No **lista, CIN pessoa)
 {
-    No *p, *novoNo = criar_no(pessoa), *q;
+	No *p, *novoNo = criar_no(pessoa), *q;
 
-    if (novoNo)
-    {
-		
+	if (novoNo)
+	{
+
 		if (*lista == NULL || strcmp(pessoa.nome, (*lista)->cin.nome) < 0)
 		{
 			novoNo->prox = *lista;
@@ -219,10 +219,8 @@ void inserir_lista_ordem_alfabetica(No **lista, CIN pessoa)
 			novoNo->prox = p;
 			q->prox = novoNo;
 		}
-		
-    }
+	}
 }
-
 
 // Inserir no estado
 void insere_estado(Estado estados[], CIN pessoa, const char *sigla)
@@ -234,7 +232,6 @@ void insere_estado(Estado estados[], CIN pessoa, const char *sigla)
 		inserir_lista_ordem_alfabetica(&estados[i].tabela[alf].prox, pessoa);
 	}
 }
-
 
 // Preencher os estados com tabelas hash
 void gerar_relatorio(Estado estados[], No tabela[], int anoInicial, int anoFinal)
@@ -255,7 +252,8 @@ void gerar_relatorio(Estado estados[], No tabela[], int anoInicial, int anoFinal
 	}
 }
 
-void deleta_naturalidade(Naturalidade **nat){
+void deleta_naturalidade(Naturalidade **nat)
+{
 	Naturalidade *aux, *remove;
 
 	aux = *nat;
@@ -292,11 +290,14 @@ void deleta_tabela(No tabela[])
 	}
 }
 
-void deleta_estados(Estado estados[]){
+void deleta_estados(Estado estados[])
+{
 	int i, j;
 
-	for (i = 0; i < TAM_ESTADO; i++){
-		for(j = 0; j < TAM_ALFABETO; j++){
+	for (i = 0; i < TAM_ESTADO; i++)
+	{
+		for (j = 0; j < TAM_ALFABETO; j++)
+		{
 			deleta_lista(&estados[i].tabela[j].prox);
 			estados[i].tabela[j].prox = NULL;
 		}

@@ -1,12 +1,12 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include "arvoreBinaria.h"
+#include "estrutura.h"
 
-void menuPrincipal();
+int menuPrincipal();
 
-long menu1();
+void menu1(char *cpf);
 
-void menu4(int *anoInicio, int *anoFinal);
+void menu2(int *anoInicio, int *anoFinal);
 
 #endif

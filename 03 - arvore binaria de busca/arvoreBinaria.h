@@ -1,70 +1,34 @@
 #ifndef ARVOREBINARIA_H
 #define ARVOREBINARIA_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "estrutura.h"
 
-typedef struct
-{
-	char cidade[31];
-	char estado[3];
-	int rg;
-} Naturalidade;
+Node *criar_node(CIN cin);
 
-typedef struct
-{
-	char nome[70];
-	int data[3];
-	long registro;
-	Naturalidade registros_emetidos[27];
-} CIN;
+void insere_arvore(Node **arvore, CIN cin);
 
-typedef struct Node
-{
-	CIN cin;
-	struct Node *dir;
-	struct Node *esq;
-} Node;
-
-typedef struct Estado
-{
-	Node *node;
-	int sigla;
-	struct Estado *dir;
-	struct Estado *esq;
-} Estado;
-
-Node *novo_node(CIN cin);
-
-Estado *novo_estado(int valor_sigla);
-
-int valor_estado(const char *sigla);
-
-Estado *busca_estado(Estado *estado, int valor_sigla, Estado *anterior);
-
-Estado *popular_estados();
-
-Node *busca_cin(Node *raiz, long registro, Node *anterior);
-
-Node *busca_nome(Node *raiz, const char *nome, Node *anterior);
-
-void inserir_cin(Node **node, CIN cin);
-
-void inserir_nome(Estado *estados, CIN cin);
-
-Node *maior_ValorEsq(Node *no);
-
-long remover_cin(Node **raiz, Estado *estados, long registro);
-
-void remover_cin_estado(Estado *estados, Node *no_removido);
-
-void imprimir_cins_idade(Node *arvore, int anoInicial, int anoFinal);
+Node *busca_cin(Node *arvore, char registro[12]);
 
 void imprimir_cin(CIN cin);
 
-void relatorio(Estado *estados, int anoInicial, int anoFinal);
+Estado *novo_estado(const char *sigla);
+
+Estado *inserir_estado(Estado *raiz, const char *sigla);
+
+void criar_arvore_estados(Estado **raiz, int inicio, int fim);
+
+void inserir_arvore_ordem_alfabetica(Node **arvore, CIN pessoa);
+
+Estado *busca_estado(Estado *estado, char *sigla);
+
+void insere_node_estado(Estado *estados, CIN pessoa);
+
+void gerar_relatorio(Estado *estados, Node *arvore, int anoInicial, int anoFinal);
+
+void deleta_naturalidade(Naturalidade *nat);
 
 void deleta_arvore(Node *arvore);
+
+void deleta_estados(Estado *estados);
 
 #endif

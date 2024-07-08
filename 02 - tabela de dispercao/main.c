@@ -25,8 +25,6 @@ double stopTimer(clock_t *start, clock_t *end)
 
 int main(int argc, char *argv[])
 {
-    printf("Entrou!");
-    printf("Legal!\n");
     if (argc != 2)
     {
         printf("Uso: %s <nome_do_arquivo_json>\n", argv[0]);
@@ -42,7 +40,6 @@ int main(int argc, char *argv[])
 
     // Inicializar a tabela hash
     popular_hash(tabela, TAM);
-    popular_estados(relatorio);
 
     printf("Tabela hash inicializada.\n");
 
